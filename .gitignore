@@ -1,0 +1,35 @@
+# Build artifacts
+*.o
+*.ko
+*.mod
+*.mod.c
+*.order
+*.symvers
+.modules
+Module.symvers
+modules.order
+
+# Kernel build
+vmlinux
+System.map
+.config
+olddefconfig
+*.tar.gz
+
+# APFS module
+linux-7.0/fs/apfs/*.ko
+linux-7.0/fs/apfs/*.o
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large files
+*.iso
+*.dmg

@@ -1,0 +1,38 @@
+name: Build LPNU Kernel
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential bc kmod cpio libssl-dev
+    
+    - name: Build kernel
+      run: |
+        cd linux-7.0
+        make defconfig
+        make -j$(nproc)
+    
+    - name: Build APFS module
+      run: |
+        cd linux-7.0/fs/apfs
+        make
+        
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: lpnu-kernel
+        path: |
+          linux-7.0/vmlinux
+          linux-7.0/fs/apfs/*.ko
