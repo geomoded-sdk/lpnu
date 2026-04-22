@@ -253,6 +253,154 @@ IOReturn LPNUIOUserClientSendData(LPNUIOUserClient* client, void* data, uint32_t
 IOReturn LPNUIOUserClientCopyScalar(LPNUIOUserClient* client, void** scalar, uint32_t* count);
 IOReturn LPNUIOUserClientCopyData(LPNUIOUserClient* client, void** data, uint32_t* size);
 
+/* IOEventSource */
+typedef void (*IOEventSourceAction)(void* owner, void* target);
+typedef void* LPNUIOEventSource;
+IOReturn LPNUIOEventSourceCreate(LPNUIOEventSource* source, void* owner, IOEventSourceAction action, void* target);
+void LPNUIOEventSourceDestroy(LPNUIOEventSource source);
+IOReturn LPNUIOEventSourceEnable(LPNUIOEventSource source);
+IOReturn LPNUIOEventSourceDisable(LPNUIOEventSource source);
+bool LPNUIOEventSourceIsEnabled(LPNUIOEventSource source);
+
+/* IOSharedLock */
+typedef void* LPNUIOSharedLock;
+IOReturn LPNUIOSharedLockCreate(LPNUIOSharedLock* lock);
+void LPNUIOSharedLockDestroy(LPNUIOSharedLock lock);
+void LPNUIOSharedLockAcquireShared(LPNUIOSharedLock lock);
+void LPNUIOSharedLockAcquireExclusive(LPNUIOSharedLock lock);
+void LPNUIOSharedLockRelease(LPNUIOSharedLock lock);
+bool LPNUIOSharedLockTryAcquireShared(LPNUIOSharedLock lock);
+bool LPNUIOSharedLockTryAcquireExclusive(LPNUIOSharedLock lock);
+
+/* IODeviceMemory */
+typedef struct LPNUIODeviceMemory {
+    void* base;
+    uint64_t length;
+    uint64_t physical;
+} LPNUIODeviceMemory;
+IOReturn LPNUIODeviceMemoryCreate(LPNUIODeviceMemory** memory, void* base, uint64_t length);
+void LPNUIODeviceMemoryDestroy(LPNUIODeviceMemory* memory);
+void* LPNUIODeviceMemoryGetBase(LPNUIODeviceMemory* memory);
+uint64_t LPNUIODeviceMemoryGetLength(LPNUIODeviceMemory* memory);
+uint64_t LPNUIODeviceMemoryGetPhysicalAddress(LPNUIODeviceMemory* memory);
+
+/* IODMACommand */
+typedef void* LPNUIODMACommand;
+typedef void (*IODMACommandAction)(void* ref, void* segment, uint32_t numSegments);
+IOReturn LPNUIODMACommandCreate(LPNUIODMACommand* command, LPNUIODeviceMemory* memory, uint32_t options);
+void LPNUIODMACommandDestroy(LPNUIODMACommand command);
+IOReturn LPNUIODMACommandPrepare(LPNUIODMACommand command);
+IOReturn LPNUIODMACommandExecute(LPNUIODMACommand command, IODMACommandAction action, void* ref);
+
+/* IOServiceMatching */
+IOReturn LPNUIOServiceMatching(LPNUIOService** service, const char* name);
+IOReturn LPNUIOServiceGetMatchingService(LPNUIOService* matching);
+IOReturn LPNUIOServiceGetMatchingServices(LPNUIOService** services, int* count);
+
+/* IONotifier */
+typedef void (*IONotifierFunction)(void* ref, LPNUIOService* service);
+typedef void* LPNUIONotifier;
+IOReturn LPNUIONotifierCreate(LPNUIONotifier* notifier, IONotifierFunction function, void* ref);
+void LPNUIONotifierDestroy(LPNUIONotifier notifier);
+IOReturn LPNUIONotifierAdd(LPNUIONotifier notifier, LPNUIONotifier* newNotifier);
+
+/* IODeviceTree */
+IOReturn LPNUIODeviceTreeCreate(void** tree);
+void LPNUIODeviceTreeDestroy(void* tree);
+IOReturn LPNUIODeviceTreeAddChild(void* parent, const char* name, void** child);
+IOReturn LPNUIODeviceTreeSetProperty(void* node, const char* name, void* data, uint32_t length);
+IOReturn LPNUIODeviceTreeGetProperty(void* node, const char* name, void** data, uint32_t* length);
+
+/* IOPMLegacy */
+enum {
+    kIOPMDevicePowerStateOn = 0,
+    kIOPMDevicePowerStateOff = 1,
+    kIOPMDevicePowerStateIdle = 2,
+    kIOPMDevicePowerStateSleep = 3
+};
+typedef void* LPNUIOPMConnection;
+IOReturn LPNUIOPMConnectionCreate(LPNUIOPMConnection* connection, const char* name);
+void LPNUIOPMConnectionDestroy(LPNUIOPMConnection connection);
+IOReturn LPNUIOPMConnectionSetPowerState(LPNUIOPMConnection connection, uint32_t state);
+IOReturn LPNUIOPMConnectionRegisterInterest(LPNUIOPMConnection connection, const char* notification, void* ref, IONotifierFunction callback);
+
+/* IOWorkLoop */
+typedef struct LPNUIOWorkLoop {
+    void* eventSource;
+    void* gate;
+    uint32_t state;
+} LPNUIOWorkLoop;
+IOReturn LPNUIOWorkLoopCreate(LPNUIOWorkLoop** workLoop);
+void LPNUIOWorkLoopDestroy(LPNUIOWorkLoop* workLoop);
+IOReturn LPNUIOWorkLoopAddEventSource(LPNUIOWorkLoop* workLoop, LPNUIOEventSource* source);
+IOReturn LPNUIOWorkLoopRemoveEventSource(LPNUIOWorkLoop* workLoop, LPNUIOEventSource* source);
+IOReturn LPNUIOWorkLoopRun(LPNUIOWorkLoop* workLoop, void* function, void* arg);
+IOReturn LPNUIOWorkLoopWakeup(LPNUIOWorkLoop* workLoop);
+
+/* IOBufferMemoryDescriptor */
+typedef struct LPNUIOBufferMemoryDescriptor {
+    void* buffer;
+    uint64_t length;
+    uint32_t options;
+    void* map;
+} LPNUIOBufferMemoryDescriptor;
+IOReturn LPNUIOBufferMemoryDescriptorCreate(LPNUIOBufferMemoryDescriptor** desc, uint64_t length, uint32_t options);
+void LPNUIOBufferMemoryDescriptorDestroy(LPNUIOBufferMemoryDescriptor* desc);
+void* LPNUIOBufferMemoryDescriptorGetBuffer(LPNUIOBufferMemoryDescriptor* desc);
+uint64_t LPNUIOBufferMemoryDescriptorGetLength(LPNUIOBufferMemoryDescriptor* desc);
+IOReturn LPNUIOBufferMemoryDescriptorPrepare(LPNUIOBufferMemoryDescriptor* desc);
+IOReturn LPNUIOBufferMemoryDescriptorComplete(LPNUIOBufferMemoryDescriptor* desc);
+
+/* IOConditionLock */
+typedef void* LPNUIOConditionLock;
+IOReturn LPNUIOConditionLockCreate(LPNUIOConditionLock* lock, uint32_t value);
+void LPNUIOConditionLockDestroy(LPNUIOConditionLock lock);
+IOReturn LPNUIOConditionLockAcquire(LPNUIOConditionLock lock, uint32_t timeout);
+IOReturn LPNUIOConditionLockRelease(LPNUIOConditionLock lock, uint32_t value);
+bool LPNUIOConditionLockTryAcquire(LPNUIOConditionLock lock, uint32_t value);
+uint32_t LPNUIOConditionLockGetValue(LPNUIOConditionLock lock);
+
+/* IOCommandPool */
+typedef struct LPNUIOCommandPool {
+    void* commands;
+    uint32_t count;
+    uint32_t size;
+} LPNUIOCommandPool;
+IOReturn LPNUIOCommandPoolCreate(LPNUIOCommandPool** pool, uint32_t count, uint32_t size);
+void LPNUIOCommandPoolDestroy(LPNUIOCommandPool* pool);
+void* LPNUIOCommandPoolAllocate(LPNUIOCommandPool* pool);
+IOReturn LPNUIOCommandPoolRelease(LPNUIOCommandPool* pool, void* command);
+
+/* IOCommandQueue */
+typedef struct LPNUIOCommandQueue {
+    void* queue;
+    void* gate;
+    uint32_t count;
+} LPNUIOCommandQueue;
+IOReturn LPNUIOCommandQueueCreate(LPNUIOCommandQueue** queue, void* workLoop);
+void LPNUIOCommandQueueDestroy(LPNUIOCommandQueue* queue);
+IOReturn LPNUIOCommandQueueEnqueue(LPNUIOCommandQueue* queue, void* command);
+void* LPNUIOCommandQueueDequeue(LPNUIOCommandQueue* queue);
+bool LPNUIOCommandQueueIsEmpty(LPNUIOCommandQueue* queue);
+uint32_t LPNUIOCommandQueueGetCount(LPNUIOCommandQueue* queue);
+
+/* IOService additions - More utilities */
+IOReturn LPNUIOServiceAddMatchingDictionary(LPNUIOService* service, const char* key, void* value);
+IOReturn LPNUIOServiceGetPropertyTable(LPNUIOService* service, void** table);
+IOReturn LPNUIOServiceGetParentIterator(LPNUIOService* service, void** iterator);
+IOReturn LPNUIOServiceGetChildIterator(LPNUIOService* service, void** iterator);
+void* LPNUIOServiceIterateOverChildren(LPNUIOService* service, void* iterator);
+void* LPNUIOServiceIterateOverParents(LPNUIOService* service, void* iterator);
+
+/* IOSharedDataQueue */
+typedef void* LPNUIOSharedDataQueue;
+IOReturn LPNUIOSharedDataQueueCreate(LPNUIOSharedDataQueue** queue, const char* name, uint32_t size);
+void LPNUIOSharedDataQueueDestroy(LPNUIOSharedDataQueue queue);
+IOReturn LPNUIOSharedDataQueueEnqueue(LPNUIOSharedDataQueue queue, void* data, uint32_t size);
+bool LPNUIOSharedDataQueueDequeue(LPNUIOSharedDataQueue queue, void* data, uint32_t* size);
+uint32_t LPNUIOSharedDataQueueGetSize(LPNUIOSharedDataQueue queue);
+uint32_t LPNUIOSharedDataQueueGetCapacity(LPNUIOSharedDataQueue queue);
+
 /* Initialization */
 IOReturn LPNUIOKitInitialize(void);
 const char* LPNUIOKitGetVersion(void);
