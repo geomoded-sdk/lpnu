@@ -27,10 +27,7 @@ jobs:
     - name: Create sys/sysctl.h stub
       run: |
         mkdir -p maloader/include/sys
-        echo '#ifndef _SYS_SYSCTL_H' > maloader/include/sys/sysctl.h
-        echo '#define _SYS_SYSCTL_H' >> maloader/include/sys/sysctl.h
-        echo '#define CTL_KERN 2' >> maloader/include/sys/sysctl.h
-        echo '#define KERN_JOBSIZE 48' >> maloader/include/sys/sysctl.h
+        printf '#ifndef _SYS_SYSCTL_H\n#define _SYS_SYSCTL_H\n#define CTL_KERN 1\n#define KERN_JOBSIZE 48\n#endif\n' > maloader/include/sys/sysctl.h
     
     - name: Build Maloader
       run: |
