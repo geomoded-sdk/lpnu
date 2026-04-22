@@ -2,8 +2,7 @@
 #include <linux/kernel.h>
 #include <linux/init.h>
 
-#include "include/lpnu_mach_o.h"
-#include "include/lpnu_compat.h"
+#include "lpnu_mach_o.h"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("LPNU Team");
