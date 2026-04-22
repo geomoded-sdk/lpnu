@@ -4,7 +4,7 @@
 #include <linux/errno.h>
 #include <linux/types.h>
 
-#include "include/lpnu_mach_o.h"
+#include "lpnu_mach_o.h"
 
 int lpnu_load_mach_o(struct file *filp, struct dentry *dentry)
 {
