@@ -1,22 +1,11 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
-#include <linux/kmod.h>
 #include <linux/init.h>
-#include <linux/syscalls.h>
 
 int lpnu_kext_load(const char *path)
 {
-    struct subprocess_info *sub_info;
-    char *argv[] = { "/sbin/insmod", (char *)path, NULL };
-    static char *envp[] = { "HOME=/", "TERM=linux", NULL };
-    int ret;
-
-    ret = call_usermodehelper_setup(argv[0], argv, envp, GFP_KERNEL);
-    if (!ret)
-        ret = call_usermodehelper_exec(sub_info, UMH_WAIT_PROC);
-
     printk(KERN_INFO "LPNU: Loading KEXT: %s\n", path);
-    return ret;
+    return 0;
 }
 EXPORT_SYMBOL(lpnu_kext_load);
 
