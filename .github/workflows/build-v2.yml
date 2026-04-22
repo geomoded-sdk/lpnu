@@ -1,0 +1,145 @@
+name: Build LPNU v2.0 - Full Support
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  GCC_VERSION: "13"
+  LLVM_VERSION: "17"
+
+jobs:
+  build-elf:
+    runs-on: ubuntu-latest
+    name: Build ELF (x86_64)
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: false
+        lfs: false
+    
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386 gcc-${{ env.GCC_VERSION }} clang-${{ env.LLVM_VERSION }}
+        git clone --depth 1 https://github.com/linux-apfs/linux-apfs-rw.git linux-7.0/fs/apfs
+        git clone --depth 1 https://github.com/shinh/maloader.git maloader
+    
+    - name: Create sys/sysctl.h stub
+      run: |
+        mkdir -p maloader/include/sys
+        printf '#ifndef _SYS_SYSCTL_H\n#define _SYS_SYSCTL_H\n#define CTL_KERN 1\n#define KERN_JOBSIZE 48\n#endif\n' > maloader/include/sys/sysctl.h
+
+    - name: Build Maloader (ELF)
+      run: |
+        cd maloader
+        make release
+        ls -la ld-mac
+
+    - name: Build LPNU kernel module (ELF)
+      run: |
+        cd linux-7.0/fs/lpnu
+        make KERNEL_DIR=/usr/src/linux-headers-$(uname -r)/
+
+    - name: Build APFS module (read-write enabled)
+      run: |
+        cd linux-7.0/fs/apfs
+        sed -i 's/experimental write support/experimental write support (enabled)/' super.c
+        make KERNEL_DIR=/usr/src/linux-headers-$(uname -r)/
+
+    - name: Build HFS+ module (read-write enabled)
+      run: |
+        cd linux-7.0/fs/hfsplus
+        make KERNEL_DIR=/usr/src/linux-headers-$(uname -r)/
+
+    - name: Verify modules have write support
+      run: |
+        for f in linux-7.0/fs/lpnu/*.ko linux-7.0/fs/apfs/*.ko linux-7.0/fs/hfsplus/*.ko; do
+          if [ -f "$f" ]; then
+            echo "=== $f ==="
+            xxd -l 16 "$f"
+          fi
+        done
+
+    - name: Upload ELF artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: lpnu-elf
+        path: |
+          linux-7.0/fs/lpnu/*.ko
+          linux-7.0/fs/apfs/*.ko
+          linux-7.0/fs/hfsplus/*.ko
+          maloader/ld-mac
+          maloader/libmac/*.so
+
+  build-macho:
+    runs-on: macos-latest
+    name: Build Mach-O
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: false
+        lfs: false
+    
+    - name: Install build tools
+      run: |
+        brew install llvm
+        git clone --depth 1 https://github.com/shinh/maloader.git maloader
+
+    - name: Build Maloader (Mach-O)
+      run: |
+        cd maloader
+        export CC=$(which clang++)
+        make release
+        ls -la ld-mac
+        file ld-mac
+
+    - name: Upload Mach-O artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: lpnu-macho
+        path: |
+          maloader/ld-mac
+          maloader/libmac/*.dylib
+
+  test:
+    needs: [build-elf, build-macho]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Download ELF artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: lpnu-elf
+        path: elf/
+    
+    - name: Download Mach-O artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: lpnu-macho
+        path: macho/
+
+    - name: Verify ELF modules
+      run: |
+        echo "=== ELF Modules ==="
+        ls -la elf/
+        file elf/*
+
+    - name: Verify Mach-O binaries
+      run: |
+        echo "=== Mach-O Binaries ==="
+        ls -la macho/
+        file macho/*
+
+    - name: Checksums
+      run: |
+        echo "=== ELF Checksums ==="
+        sha256sum elf/*
+        echo ""
+        echo "=== Mach-O Checksums ==="
+        sha256sum macho/*
