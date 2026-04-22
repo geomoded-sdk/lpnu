@@ -58,6 +58,39 @@ enum {
     kIOFBOptionBitsSpeedUnknown = 0x80000000
 };
 
+/* IOInterruptSource types */
+enum {
+    kIOInterruptTypeMask = 0x00000007,
+    kIOInterruptTypeSimple = 0x00000001,
+    kIOInterruptTypeLevel = 0x00000002,
+    kIOInterruptTypeEdge = 0x00000003,
+    kIOInterruptTypePCLevel = 0x00000004,
+    kIOInterruptTypeTimer = 0x00000005
+};
+
+/* IOEventSource types */
+enum {
+    kIOEventSourceDefault = 0,
+    kIOEventSourceTimer,
+    kIOEventSourceInterrupt,
+    kIOEventSourceCommand,
+    kIOEventSourceData
+};
+
+/* IOMemoryDescriptor options */
+enum {
+    kIOMemoryDirectionIn = 0,
+    kIOMemoryDirectionOut = 1,
+    kIOMemoryDirectionInOut = 2
+};
+
+/* IOService matching */
+enum {
+    kIOServiceMatching = 1,
+    kIOMatchingServiceName = 2,
+    kIOMatchedPropertyName = 3
+};
+
 /* Forward declarations */
 struct LPNUIOService;
 struct LPNUIORegistryEntry;
@@ -143,6 +176,82 @@ void LPNUIODataQueueDestroy(LPNUIODataQueue* queue);
 IOReturn LPNUIODataQueueEnqueue(LPNUIODataQueue* queue, void* data, uint32_t size);
 IOReturn LPNUIODataQueueDequeue(LPNUIODataQueue* queue, void* data, uint32_t* size);
 uint32_t LPNUIODataQueueGetSize(LPNUIODataQueue* queue);
+uint32_t LPNUIODataQueueGetCapacity(LPNUIODataQueue* queue);
+bool LPNUIODataQueueIsEmpty(LPNUIODataQueue* queue);
+bool LPNUIODataQueueIsFull(LPNUIODataQueue* queue);
+
+/* IOLock functions */
+typedef void* LPNUIOLock;
+IOReturn LPNUIOLockCreate(LPNUIOLock* lock);
+void LPNUIOLockDestroy(LPNUIOLock lock);
+void LPNUIOLockAcquire(LPNUIOLock lock);
+bool LPNUIOLockTryAcquire(LPNUIOLock lock);
+void LPNUIOLockRelease(LPNUIOLock lock);
+
+/* IOSimpleLock functions */
+typedef void* LPNUIOSimpleLock;
+IOReturn LPNUIOSimpleLockCreate(LPNUIOSimpleLock* lock);
+void LPNUIOSimpleLockDestroy(LPNUIOSimpleLock lock);
+void LPNUIOSimpleLockAcquire(LPNUIOSimpleLock lock);
+void LPNUIOSimpleLockRelease(LPNUIOSimpleLock lock);
+
+/* IOInterruptEventSource functions */
+typedef void (*IOInterruptHandler)(void* target, void* ref, uint32_t vector);
+typedef void* LPNUIOInterruptEventSource;
+IOReturn LPNUIOInterruptEventSourceCreate(LPNUIOInterruptEventSource* source, 
+                                       void* controller,
+                                       IOInterruptHandler handler,
+                                       void* target,
+                                       void* ref);
+void LPNUIOInterruptEventSourceDestroy(LPNUIOInterruptEventSource source);
+IOReturn LPNUIOInterruptEventSourceEnable(LPNUIOInterruptEventSource source);
+IOReturn LPNUIOInterruptEventSourceDisable(LPNUIOInterruptEventSource source);
+
+/* IOTimerEventSource functions */
+typedef void (*IOTimerCallback)(void* target, void* ref);
+typedef void* LPNUIOTimerEventSource;
+IOReturn LPNUIOTimerEventSourceCreate(LPNUIOTimerEventSource* source,
+                                         void* owner,
+                                         IOTimerCallback callback,
+                                         void* target);
+void LPNUIOTimerEventSourceDestroy(LPNUIOTimerEventSource source);
+IOReturn LPNUIOTimerEventSourceSetTimeout(LPNUIOTimerEventSource source, uint64_t delay);
+IOReturn LPNUIOTimerEventSourceCancel(LPNUIOTimerEventSource source);
+IOReturn LPNUIOTimerEventSourceArm(LPNUIOTimerEventSource source, uint64_t delay);
+IOReturn LPNUIOTimerEventSourceDisarm(LPNUIOTimerEventSource source);
+
+/* IOCommandGate functions */
+typedef void* LPNUIOCommandGate;
+IOReturn LPNUIOCommandGateCreate(LPNUIOCommandGate* gate, void* workLoop);
+void LPNUIOCommandGateDestroy(LPNUIOCommandGate gate);
+IOReturn LPNUIOCommandGateRun(LPNUIOCommandGate gate, void* function, void* arg);
+
+/* IOMemoryDescriptor functions */
+typedef struct {
+    void* address;
+    uint64_t length;
+    uint32_t direction;
+    void* pageRef;
+} LPNUIOMemoryDescriptor;
+IOReturn LPNUIOMemoryDescriptorCreate(LPNUIOMemoryDescriptor** desc,
+                                          void* address,
+                                          uint64_t length,
+                                          uint32_t direction);
+void LPNUIOMemoryDescriptorDestroy(LPNUIOMemoryDescriptor* desc);
+void* LPNUIOMemoryDescriptorGetAddress(LPNUIOMemoryDescriptor* desc);
+uint64_t LPNUIOMemoryDescriptorGetLength(LPNUIOMemoryDescriptor* desc);
+IOReturn LPNUIOMemoryDescriptorMap(LPNUIOMemoryDescriptor* desc, void** map, uint64_t offset);
+
+/* IOUserClient functions */
+typedef void* LPNUIOUserClient;
+IOReturn LPNUIOUserClientCreate(LPNUIOUserClient** client, void* service);
+void LPNUIOUserClientDestroy(LPNUIOUserClient* client);
+IOReturn LPNUIOUserClientConnect(LPNUIOUserClient* client, void* task);
+IOReturn LPNUIOUserClientDisconnect(LPNUIOUserClient* client);
+IOReturn LPNUIOUserClientSendScalar(LPNUIOUserClient* client, void* scalar, uint32_t count);
+IOReturn LPNUIOUserClientSendData(LPNUIOUserClient* client, void* data, uint32_t size);
+IOReturn LPNUIOUserClientCopyScalar(LPNUIOUserClient* client, void** scalar, uint32_t* count);
+IOReturn LPNUIOUserClientCopyData(LPNUIOUserClient* client, void** data, uint32_t* size);
 
 /* Initialization */
 IOReturn LPNUIOKitInitialize(void);
