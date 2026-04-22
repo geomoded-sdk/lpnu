@@ -977,3 +977,381 @@ uint32_t LPNUIOSharedDataQueueGetCapacity(LPNUIOSharedDataQueue queue) {
     (void)queue;
     return 0;
 }
+
+/* IOFilterInterruptEventSource */
+IOReturn LPNUIOFilterInterruptEventSourceCreate(LPNUIOFilterInterruptEventSource* source,
+                                               void* controller,
+                                               IOFilterInterruptFilter filter,
+                                               IOInterruptHandler handler,
+                                               void* target,
+                                               void* ref) {
+    (void)source; (void)controller; (void)filter; (void)handler; (void)target; (void)ref;
+    return kIOReturnSuccess;
+}
+void LPNUIOFilterInterruptEventSourceDestroy(LPNUIOFilterInterruptEventSource source) { (void)source; }
+IOReturn LPNUIOFilterInterruptEventSourceEnable(LPNUIOFilterInterruptEventSource source) { (void)source; return kIOReturnSuccess; }
+IOReturn LPNUIOFilterInterruptEventSourceDisable(LPNUIOFilterInterruptEventSource source) { (void)source; return kIOReturnSuccess; }
+
+/* IODMAEventSource */
+IOReturn LPNUIODMAEventSourceCreate(LPNUIODMAEventSource* source, void* controller, IODMAAction action, void* target) {
+    (void)source; (void)controller; (void)action; (void)target; return kIOReturnSuccess;
+}
+void LPNUIODMAEventSourceDestroy(LPNUIODMAEventSource source) { (void)source; }
+IOReturn LPNUIODMAEventSourceStart(LPNUIODMAEventSource source) { (void)source; return kIOReturnSuccess; }
+IOReturn LPNUIODMAEventSourceStop(LPNUIODMAEventSource source) { (void)source; return kIOReturnSuccess; }
+IOReturn LPNUIODMAEventSourceExecute(LPNUIODMAEventSource source, void* dmacommand, IODMAAction callback, void* target) {
+    (void)source; (void)dmacommand; (void)callback; (void)target; return kIOReturnSuccess;
+}
+
+/* IOInterruptController */
+IOReturn LPNUIOInterruptControllerCreate(LPNUIOInterruptController* controller, const char* name) {
+    (void)controller; (void)name; return kIOReturnSuccess;
+}
+void LPNUIOInterruptControllerDestroy(LPNUIOInterruptController controller) { (void)controller; }
+IOReturn LPNUIOInterruptControllerAddVector(LPNUIOInterruptController controller, uint32_t vector, IOInterruptHandler handler, void* target) {
+    (void)controller; (void)vector; (void)handler; (void)target; return kIOReturnSuccess;
+}
+IOReturn LPNUIOInterruptControllerEnable(LPNUIOInterruptController controller, uint32_t vector) {
+    (void)controller; (void)vector; return kIOReturnSuccess;
+}
+IOReturn LPNUIOInterruptControllerDisable(LPNUIOInterruptController controller, uint32_t vector) {
+    (void)controller; (void)vector; return kIOReturnSuccess;
+}
+IOReturn LPNUIOInterruptControllerComplete(LPNUIOInterruptController controller, uint32_t vector) {
+    (void)controller; (void)vector; return kIOReturnSuccess;
+}
+
+/* IOInterruptAccounting */
+IOReturn LPNUIOInterruptAccountingCreate(LPNUIOInterruptAccounting** accounting) {
+    (void)accounting; return kIOReturnSuccess;
+}
+void LPNUIOInterruptAccountingDestroy(LPNUIOInterruptAccounting accounting) { (void)accounting; }
+IOReturn LPNUIOInterruptAccountingSetEnabled(LPNUIOInterruptAccounting accounting, bool enabled) {
+    (void)accounting; (void)enabled; return kIOReturnSuccess;
+}
+bool LPNUIOInterruptAccountingGetEnabled(LPNUIOInterruptAccounting accounting) { (void)accounting; return false; }
+IOReturn LPNUIOInterruptAccountingCountInterrupt(LPNUIOInterruptAccounting accounting, uint32_t vector) {
+    (void)accounting; (void)vector; return kIOReturnSuccess;
+}
+uint32_t LPNUIOInterruptAccountingGetCount(LPNUIOInterruptAccounting accounting, uint32_t vector) {
+    (void)accounting; (void)vector; return 0;
+}
+
+/* IOMapper */
+IOReturn LPNUIOMapperCreate(LPNUIOMapper* mapper) { (void)mapper; return kIOReturnSuccess; }
+void LPNUIOMapperDestroy(LPNUIOMapper mapper) { (void)mapper; }
+IOReturn LPNUIOMapperMapMemory(LPNUIOMapper mapper, void* address, uint64_t length, void** map) {
+    (void)mapper; (void)address; (void)length; (void)map; return kIOReturnSuccess;
+}
+IOReturn LPNUIOMapperUnmapMemory(LPNUIOMapper mapper, void* map) { (void)mapper; (void)map; return kIOReturnSuccess; }
+void* LPNUIOMapperGetAddress(LPNUIOMapper mapper, void* map) { (void)mapper; (void)map; return NULL; }
+
+/* IOMemoryCursor */
+IOReturn LPNUIOMemoryCursorCreate(LPNUIOMemoryCursor* cursor, uint64_t alignment) {
+    (void)cursor; (void)alignment; return kIOReturnSuccess;
+}
+void LPNUIOMemoryCursorDestroy(LPNUIOMemoryCursor cursor) { (void)cursor; }
+IOReturn LPNUIOMemoryCursorGetPhysical(LPNUIOMemoryCursor cursor, void* segment, void** physAddr, uint64_t* length) {
+    (void)cursor; (void)segment; (void)physAddr; (void)length; return kIOReturnSuccess;
+}
+
+/* IOMultiMemoryDescriptor */
+IOReturn LPNUIOMultiMemoryDescriptorCreate(LPNUIOMultiMemoryDescriptor** desc, uint32_t numDescriptors) {
+    (void)desc; (void)numDescriptors; return kIOReturnSuccess;
+}
+void LPNUIOMultiMemoryDescriptorDestroy(LPNUIOMultiMemoryDescriptor desc) { (void)desc; }
+IOReturn LPNUIOMultiMemoryDescriptorSetDescriptor(LPNUIOMultiMemoryDescriptor desc, uint32_t index, void* address, uint64_t length, uint32_t direction) {
+    (void)desc; (void)index; (void)address; (void)length; (void)direction; return kIOReturnSuccess;
+}
+
+/* IOInterleavedMemoryDescriptor */
+IOReturn LPNUIOInterleavedMemoryDescriptorCreate(LPNUIOInterleavedMemoryDescriptor** desc, uint32_t numSegments) {
+    (void)desc; (void)numSegments; return kIOReturnSuccess;
+}
+void LPNUIOInterleavedMemoryDescriptorDestroy(LPNUIOInterleavedMemoryDescriptor desc) { (void)desc; }
+IOReturn LPNUIOInterleavedMemoryDescriptorCopyFrom(LPNUIOInterleavedMemoryDescriptor desc, void* src, uint64_t length) {
+    (void)desc; (void)src; (void)length; return kIOReturnSuccess;
+}
+IOReturn LPNUIOInterleavedMemoryDescriptorCopyTo(LPNUIOInterleavedMemoryDescriptor desc, void* dst, uint64_t length) {
+    (void)desc; (void)dst; (void)length; return kIOReturnSuccess;
+}
+
+/* IOSubMemoryDescriptor */
+IOReturn LPNUIOSubMemoryDescriptorCreate(LPNUIOSubMemoryDescriptor** desc, void* parent, uint64_t offset, uint64_t length) {
+    (void)desc; (void)parent; (void)offset; (void)length; return kIOReturnSuccess;
+}
+void LPNUIOSubMemoryDescriptorDestroy(LPNUIOSubMemoryDescriptor desc) { (void)desc; }
+uint64_t LPNUIOSubMemoryDescriptorGetOffset(LPNUIOSubMemoryDescriptor desc) { (void)desc; return 0; }
+
+/* IOGuardPageMemoryDescriptor */
+IOReturn LPNUIOGuardPageMemoryDescriptorCreate(LPNUIOGuardPageMemoryDescriptor** desc, uint64_t length) {
+    (void)desc; (void)length; return kIOReturnSuccess;
+}
+void LPNUIOGuardPageMemoryDescriptorDestroy(LPNUIOGuardPageMemoryDescriptor desc) { (void)desc; }
+IOReturn LPNUIOGuardPageMemoryDescriptorAllocate(LPNUIOGuardPageMemoryDescriptor desc) { (void)desc; return kIOReturnSuccess; }
+IOReturn LPNUIOGuardPageMemoryDescriptorDeallocate(LPNUIOGuardPageMemoryDescriptor desc) { (void)desc; return kIOReturnSuccess; }
+
+/* IOReportTypes */
+IOReturn LPNUIOReportTypeCreate(LPNUIOReportType* type, uint32_t id, const char* name, uint32_t dataSize) {
+    (void)type; (void)id; (void)name; (void)dataSize; return kIOReturnSuccess;
+}
+void LPNUIOReportTypeDestroy(LPNUIOReportType type) { (void)type; }
+IOReturn LPNUIOReportChannelCreate(LPNUIOReportChannel* channel, LPNUIOReportType type) {
+    (void)channel; (void)type; return kIOReturnSuccess;
+}
+void LPNUIOReportChannelDestroy(LPNUIOReportChannel channel) { (void)channel; }
+IOReturn LPNUIOReportChannelSubmit(LPNUIOReportChannel channel, const void* data, uint64_t timestamp) {
+    (void)channel; (void)data; (void)timestamp; return kIOReturnSuccess;
+}
+
+/* IOStatistics */
+IOReturn LPNUIOStatisticsCreate(LPNUIOStatistics* stats) { (void)stats; return kIOReturnSuccess; }
+void LPNUIOStatisticsDestroy(LPNUIOStatistics stats) { (void)stats; }
+IOReturn LPNUIOStatisticsIncrement(LPNUIOStatistics stats, const char* name, int64_t delta) {
+    (void)stats; (void)name; (void)delta; return kIOReturnSuccess;
+}
+IOReturn LPNUIOStatisticsGetValue(LPNUIOStatistics stats, const char* name, int64_t* value) {
+    (void)stats; (void)name; (void)value; return kIOReturnSuccess;
+}
+IOReturn LPNUIOStatisticsCreateEntry(LPNUIOStatistics stats, LPNUIOStatisticsEntry* entry, const char* name) {
+    (void)stats; (void)entry; (void)name; return kIOReturnSuccess;
+}
+
+/* IOCatalogue */
+IOReturn LPNUIOCatalogueCreate(LPNUIOCatalogue* catalogue) { (void)catalogue; return kIOReturnSuccess; }
+void LPNUIOCatalogueDestroy(LPNUIOCatalogue catalogue) { (void)catalogue; }
+IOReturn LPNUIOCatalogueAddModule(LPNUIOCatalogue catalogue, const char* name, void* data, uint32_t length) {
+    (void)catalogue; (void)name; (void)data; (void)length; return kIOReturnSuccess;
+}
+IOReturn LPNUIOCatalogueGetModule(LPNUIOCatalogue catalogue, const char* name, void** data, uint32_t* length) {
+    (void)catalogue; (void)name; (void)data; (void)length; return kIOReturnSuccess;
+}
+IOReturn LPNUIOCatalogueRemoveModule(LPNUIOCatalogue catalogue, const char* name) {
+    (void)catalogue; (void)name; return kIOReturnSuccess;
+}
+uint32_t LPNUIOCatalogueGetCount(LPNUIOCatalogue catalogue) { (void)catalogue; return 0; }
+
+/* IOPlatformExpert */
+IOReturn LPNUIOPlatformExpertCreate(LPNUIOPlatformExpert** expert) { (void)expert; return kIOReturnSuccess; }
+void LPNUIOPlatformExpertDestroy(LPNUIOPlatformExpert expert) { (void)expert; }
+IOReturn LPNUIOPlatformExpertGetMachineID(LPNUIOPlatformExpert expert, void* id) {
+    (void)expert; (void)id; return kIOReturnSuccess;
+}
+IOReturn LPNUIOPlatformExpertGetPlatformName(LPNUIOPlatformExpert expert, char* name, uint32_t maxLength) {
+    (void)expert; (void)name; (void)maxLength; return kIOReturnSuccess;
+}
+
+/* IOPlatformActions */
+IOReturn LPNUIOPlatformActionCreate(LPNUIOPlatformAction* action, IOPlatformActionCallback callback, void* ref) {
+    (void)action; (void)callback; (void)ref; return kIOReturnSuccess;
+}
+void LPNUIOPlatformActionDestroy(LPNUIOPlatformAction action) { (void)action; }
+IOReturn LPNUIOPlatformActionPerform(LPNUIOPlatformAction action) { (void)action; return kIOReturnSuccess; }
+IOReturn LPNUIOPlatformActionSetTimeout(LPNUIOPlatformAction action, uint64_t timeout) {
+    (void)action; (void)timeout; return kIOReturnSuccess;
+}
+
+/* IODeviceTreeSupport */
+IOReturn LPNUIODeviceTreeNodeCreate(LPNUIODeviceTreeNode* node) { (void)node; return kIOReturnSuccess; }
+void LPNUIODeviceTreeNodeDestroy(LPNUIODeviceTreeNode node) { (void)node; }
+IOReturn LPNUIODeviceTreeNodeAddChild(LPNUIODeviceTreeNode parent, const char* name, LPNUIODeviceTreeNode* child) {
+    (void)parent; (void)name; (void)child; return kIOReturnSuccess;
+}
+IOReturn LPNUIODeviceTreeNodeSetProperty(LPNUIODeviceTreeNode node, const char* name, const void* data, uint32_t length) {
+    (void)node; (void)name; (void)data; (void)length; return kIOReturnSuccess;
+}
+IOReturn LPNUIODeviceTreeNodeGetProperty(LPNUIODeviceTreeNode node, const char* name, void** data, uint32_t* length) {
+    (void)node; (void)name; (void)data; (void)length; return kIOReturnSuccess;
+}
+IOReturn LPNUIODeviceTreeNodeGetChild(LPNUIODeviceTreeNode node, uint32_t index, LPNUIODeviceTreeNode* child) {
+    (void)node; (void)index; (void)child; return kIOReturnSuccess;
+}
+uint32_t LPNUIODeviceTreeNodeGetChildCount(LPNUIODeviceTreeNode node) { (void)node; return 0; }
+
+/* IONVRAM */
+IOReturn LPNUIONVRAMOpen(LPNUIONVRAM* nvram) { (void)nvram; return kIOReturnSuccess; }
+void LPNUIONVRAMClose(LPNUIONVRAM nvram) { (void)nvram; }
+IOReturn LPNUIONVRAMRead(LPNUIONVRAM nvram, const char* key, void* data, uint32_t* length) {
+    (void)nvram; (void)key; (void)data; (void)length; return kIOReturnSuccess;
+}
+IOReturn LPNUIONVRAMWrite(LPNUIONVRAM nvram, const char* key, const void* data, uint32_t length) {
+    (void)nvram; (void)key; (void)data; (void)length; return kIOReturnSuccess;
+}
+IOReturn LPNUIONVRAMErase(LPNUIONVRAM nvram, const char* key) { (void)nvram; (void)key; return kIOReturnSuccess; }
+IOReturn LPNUIONVRAMSync(LPNUIONVRAM nvram) { (void)nvram; return kIOReturnSuccess; }
+
+/* IOSyncer */
+IOReturn LPNUIOSyncerCreate(LPNUIOSyncer* syncer) { (void)syncer; return kIOReturnSuccess; }
+void LPNUIOSyncerDestroy(LPNUIOSyncer syncer) { (void)syncer; }
+IOReturn LPNUIOSyncerArm(LPNUIOSyncer syncer) { (void)syncer; return kIOReturnSuccess; }
+IOReturn LPNUIOSyncerWait(LPNUIOSyncer syncer, uint64_t timeout) { (void)syncer; (void)timeout; return kIOReturnSuccess; }
+IOReturn LPNUIOSyncerCancel(LPNUIOSyncer syncer) { (void)syncer; return kIOReturnSuccess; }
+
+/* IOInterrupts */
+IOReturn LPNUIOInterruptAttach(LPNUIOInterrupt* interrupt, void* controller, uint32_t vector, IOInterruptHandler handler, void* target) {
+    (void)interrupt; (void)controller; (void)vector; (void)handler; (void)target; return kIOReturnSuccess;
+}
+IOReturn LPNUIOInterruptDetach(LPNUIOInterrupt interrupt) { (void)interrupt; return kIOReturnSuccess; }
+IOReturn LPNUIOInterruptEnable(LPNUIOInterrupt interrupt) { (void)interrupt; return kIOReturnSuccess; }
+IOReturn LPNUIOInterruptDisable(LPNUIOInterrupt interrupt) { (void)interrupt; return kIOReturnSuccess; }
+IOReturn LPNUIOInterruptSetEnabled(LPNUIOInterrupt interrupt, bool enabled) {
+    (void)interrupt; (void)enabled; return kIOReturnSuccess;
+}
+
+/* IOServicePM */
+IOReturn LPNUIOServicePMCreate(LPNUIOServicePM* pm, void* service) {
+    (void)pm; (void)service; return kIOReturnSuccess;
+}
+void LPNUIOServicePMDestroy(LPNUIOServicePM pm) { (void)pm; }
+IOReturn LPNUIOServicePMSetPowerState(LPNUIOServicePM pm, uint32_t state) {
+    (void)pm; (void)state; return kIOReturnSuccess;
+}
+IOReturn LPNUIOServicePMGetPowerState(LPNUIOServicePM pm, uint32_t* state) {
+    (void)pm; (void)state; return kIOReturnSuccess;
+}
+IOReturn LPNUIOServicePMRegisterCallback(LPNUIOServicePM pm, IOPowerCallback callback, void* ref) {
+    (void)pm; (void)callback; (void)ref; return kIOReturnSuccess;
+}
+IOReturn LPNUIOServicePMRequestState(LPNUIOServicePM pm, uint32_t state) {
+    (void)pm; (void)state; return kIOReturnSuccess;
+}
+
+/* IOUserServer */
+IOReturn LPNUIOUserServerCreate(LPNUIOUserServer* server, const char* name) {
+    (void)server; (void)name; return kIOReturnSuccess;
+}
+void LPNUIOUserServerDestroy(LPNUIOUserServer server) { (void)server; }
+IOReturn LPNUIOUserServerStart(LPNUIOUserServer server) { (void)server; return kIOReturnSuccess; }
+IOReturn LPNUIOUserServerStop(LPNUIOUserServer server) { (void)server; return kIOReturnSuccess; }
+IOReturn LPNUIOUserServerAddClient(LPNUIOUserServer server, void* client) {
+    (void)server; (void)client; return kIOReturnSuccess;
+}
+
+/* IOExtensiblePaniclog */
+IOReturn LPNUIOExtensiblePaniclogOpen(LPNUIOExtensiblePaniclog* log) { (void)log; return kIOReturnSuccess; }
+void LPNUIOExtensiblePaniclogClose(LPNUIOExtensiblePaniclog log) { (void)log; }
+IOReturn LPNUIOExtensiblePaniclogWrite(LPNUIOExtensiblePaniclog log, const void* data, uint32_t length) {
+    (void)log; (void)data; (void)length; return kIOReturnSuccess;
+}
+IOReturn LPNUIOExtensiblePaniclogRead(LPNUIOExtensiblePaniclog log, void* data, uint32_t* length) {
+    (void)log; (void)data; (void)length; return kIOReturnSuccess;
+}
+uint32_t LPNUIOExtensiblePaniclogGetSize(LPNUIOExtensiblePaniclog log) { (void)log; return 0; }
+
+/* IOPolledInterface */
+IOReturn LPNUIOPolledInterfaceCreate(LPNUIOPolledInterface* interface) { (void)interface; return kIOReturnSuccess; }
+void LPNUIOPolledInterfaceDestroy(LPNUIOPolledInterface interface) { (void)interface; }
+IOReturn LPNUIOPolledInterfaceSetHandler(LPNUIOPolledInterface interface, IOPolledIOHandler handler, void* ref) {
+    (void)interface; (void)handler; (void)ref; return kIOReturnSuccess;
+}
+IOReturn LPNUIOPolledInterfacePoll(LPNUIOPolledInterface interface, uint32_t vector) {
+    (void)interface; (void)vector; return kIOReturnSuccess;
+}
+
+/* IOKernelReporter */
+IOReturn LPNUIOKernelReporterCreate(LPNUIOKernelReporter* reporter, uint32_t type, uint32_t size) {
+    (void)reporter; (void)type; (void)size; return kIOReturnSuccess;
+}
+void LPNUIOKernelReporterDestroy(LPNUIOKernelReporter reporter) { (void)reporter; }
+IOReturn LPNUIOKernelReporterSubmit(LPNUIOKernelReporter reporter, const void* data, uint32_t length) {
+    (void)reporter; (void)data; (void)length; return kIOReturnSuccess;
+}
+IOReturn LPNUIOKernelReporterSetCallback(LPNUIOKernelReporter reporter, IOKernelReportCallback callback, void* ref) {
+    (void)reporter; (void)callback; (void)ref; return kIOReturnSuccess;
+}
+
+/* IODeviceTree Iterator */
+IOReturn LPNUIODeviceTreeIteratorCreate(LPNUIODeviceTreeIterator* iter, void* root) {
+    (void)iter; (void)root; return kIOReturnSuccess;
+}
+void LPNUIODeviceTreeIteratorDestroy(LPNUIODeviceTreeIterator iter) { (void)iter; }
+IOReturn LPNUIODeviceTreeIteratorEnter(LPNUIODeviceTreeIterator iter, void* node) {
+    (void)iter; (void)node; return kIOReturnSuccess;
+}
+IOReturn LPNUIODeviceTreeIteratorExit(LPNUIODeviceTreeIterator iter) { (void)iter; return kIOReturnSuccess; }
+void* LPNUIODeviceTreeIteratorCurrent(LPNUIODeviceTreeIterator iter) { (void)iter; return NULL; }
+bool LPNUIODeviceTreeIteratorIsValid(LPNUIODeviceTreeIterator iter) { (void)iter; return false; }
+IOReturn LPNUIODeviceTreeIteratorNext(LPNUIODeviceTreeIterator iter) { (void)iter; return kIOReturnSuccess; }
+
+/* IOTimeStamp */
+IOReturn LPNUIOTimeStampCreate(LPNUIOTimeStamp* ts) { (void)ts; return kIOReturnSuccess; }
+void LPNUIOTimeStampDestroy(LPNUIOTimeStamp ts) { (void)ts; }
+IOReturn LPNUIOTimeStampNow(LPNUIOTimeStamp ts, uint64_t* timestamp) {
+    (void)ts; (void)timestamp; return kIOReturnSuccess;
+}
+IOReturn LPNUIOTimeStampGetDelta(LPNUIOTimeStamp ts1, LPNUIOTimeStamp ts2, uint64_t* delta) {
+    (void)ts1; (void)ts2; (void)delta; return kIOReturnSuccess;
+}
+IOReturn LPNUIOTimeStampToAbsTime(LPNUIOTimeStamp ts, uint64_t absTime) {
+    (void)ts; (void)absTime; return kIOReturnSuccess;
+}
+
+/* IODeviceTreeProperty */
+IOReturn LPNUIODeviceTreePropertyCreate(LPNUIODeviceTreeProperty* prop, const char* name, const void* data, uint32_t length) {
+    (void)prop; (void)name; (void)data; (void)length; return kIOReturnSuccess;
+}
+void LPNUIODeviceTreePropertyDestroy(LPNUIODeviceTreeProperty prop) { (void)prop; }
+const char* LPNUIODeviceTreePropertyGetName(LPNUIODeviceTreeProperty prop) { (void)prop; return NULL; }
+void* LPNUIODeviceTreePropertyGetData(LPNUIODeviceTreeProperty prop) { (void)prop; return NULL; }
+uint32_t LPNUIODeviceTreePropertyGetLength(LPNUIODeviceTreeProperty prop) { (void)prop; return 0; }
+
+/* IORangeAllocator */
+IOReturn LPNUIORangeAllocatorCreate(LPNUIORangeAllocator* allocator, uint64_t base, uint64_t length) {
+    (void)allocator; (void)base; (void)length; return kIOReturnSuccess;
+}
+void LPNUIORangeAllocatorDestroy(LPNUIORangeAllocator allocator) { (void)allocator; }
+IOReturn LPNUIORangeAllocatorAllocate(LPNUIORangeAllocator allocator, uint64_t length, uint64_t alignment, LPNUIOAddressRange* range) {
+    (void)allocator; (void)length; (void)alignment; (void)range; return kIOReturnSuccess;
+}
+IOReturn LPNUIORangeAllocatorFree(LPNUIORangeAllocator allocator, LPNUIOAddressRange range) {
+    (void)allocator; (void)range; return kIOReturnSuccess;
+}
+bool LPNUIORangeAllocatorContains(LPNUIORangeAllocator allocator, uint64_t address) {
+    (void)allocator; (void)address; return false;
+}
+
+/* IOServiceStateNotificationEventSource */
+IOReturn LPNUIOServiceStateNotificationEventSourceCreate(LPNUIOServiceStateNotificationEventSource* source, void* service, IOEventSourceAction action, void* target) {
+    (void)source; (void)service; (void)action; (void)target; return kIOReturnSuccess;
+}
+void LPNUIOServiceStateNotificationEventSourceDestroy(LPNUIOServiceStateNotificationEventSource source) { (void)source; }
+IOReturn LPNUIOServiceStateNotificationEventSourceSetState(LPNUIOServiceStateNotificationEventSource source, uint32_t state) {
+    (void)source; (void)state; return kIOReturnSuccess;
+}
+uint32_t LPNUIOServiceStateNotificationEventSourceGetState(LPNUIOServiceStateNotificationEventSource source) { (void)source; return 0; }
+
+/* IOServiceMatchingDict */
+IOReturn LPNUIOServiceMatchingDictCreate(LPNUIOServiceMatchingDict* dict) { (void)dict; return kIOReturnSuccess; }
+void LPNUIOServiceMatchingDictDestroy(LPNUIOServiceMatchingDict dict) { (void)dict; }
+IOReturn LPNUIOServiceMatchingDictSetProperty(LPNUIOServiceMatchingDict dict, const char* key, const void* value, uint32_t length) {
+    (void)dict; (void)key; (void)value; (void)length; return kIOReturnSuccess;
+}
+IOReturn LPNUIOServiceMatchingDictSetString(LPNUIOServiceMatchingDict dict, const char* key, const char* value) {
+    (void)dict; (void)key; (void)value; return kIOReturnSuccess;
+}
+IOReturn LPNUIOServiceMatchingDictSetNumber(LPNUIOServiceMatchingDict dict, const char* key, uint64_t value) {
+    (void)dict; (void)key; (void)value; return kIOReturnSuccess;
+}
+IOReturn LPNUIOServiceMatchingDictGetProperty(LPNUIOServiceMatchingDict dict, const char* key, void** value, uint32_t* length) {
+    (void)dict; (void)key; (void)value; (void)length; return kIOReturnSuccess;
+}
+const char* LPNUIOServiceMatchingDictGetString(LPNUIOServiceMatchingDict dict, const char* key) {
+    (void)dict; (void)key; return NULL;
+}
+uint64_t LPNUIOServiceMatchingDictGetNumber(LPNUIOServiceMatchingDict dict, const char* key) {
+    (void)dict; (void)key; return 0;
+}
+bool LPNUIOServiceMatchingDictHasProperty(LPNUIOServiceMatchingDict dict, const char* key) {
+    (void)dict; (void)key; return false;
+}
+
+/* IOEventSource more utils */
+IOReturn LPNUIOEventSourceSetCheckInterval(LPNUIOEventSource source, uint64_t interval) {
+    (void)source; (void)interval; return kIOReturnSuccess;
+}
+uint64_t LPNUIOEventSourceGetCheckInterval(LPNUIOEventSource source) { (void)source; return 0; }
+IOReturn LPNUIOEventSourceSetMaxEventsPerRun(LPNUIOEventSource source, uint32_t maxEvents) {
+    (void)source; (void)maxEvents; return kIOReturnSuccess;
+}
+uint32_t LPNUIOEventSourceGetMaxEventsPerRun(LPNUIOEventSource source) { (void)source; return 0; }
+bool LPNUIOEventSourceIsAWOL(LPNUIOEventSource source) { (void)source; return false; }
