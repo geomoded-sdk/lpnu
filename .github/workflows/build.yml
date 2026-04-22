@@ -1,4 +1,4 @@
-name: Build LPNU Kernel
+name: Build LPNU Kernel with Maloader
 
 on:
   push:
@@ -20,15 +20,16 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev linux-headers-$(uname -r)
+        sudo apt-get install -y build-essential libssl-dev git
         git clone --depth 1 https://github.com/linux-apfs/linux-apfs-rw.git linux-7.0/fs/apfs
+        git clone --depth 1 https://github.com/shinh/maloader.git maloader
     
-    - name: Build binfmt_mach_o
+    - name: Build Maloader
       run: |
-        cd linux-7.0/fs
-        cp binfmt_mach_o.c /usr/src/linux-headers-$(uname -r)/fs/
-        make -C /usr/src/linux-headers-$(uname -r)/ M=$(pwd) fs/binfmt_mach_o.o
-    
+        cd maloader
+        make release
+        ls -la ld-mac
+        
     - name: Build LPNU module
       run: |
         cd linux-7.0/fs/lpnu
@@ -42,8 +43,9 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: lpnu-modules
+        name: lpnu-all
         path: |
           linux-7.0/fs/lpnu/*.ko
           linux-7.0/fs/apfs/*.ko
-          linux-7.0/fs/*.ko
+          maloader/ld-mac
+          maloader/libmac/*.so
