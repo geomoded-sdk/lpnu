@@ -20,7 +20,7 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev git
+        sudo apt-get install -y build-essential libssl-dev git libuuid-dev
         git clone --depth 1 https://github.com/linux-apfs/linux-apfs-rw.git linux-7.0/fs/apfs
         git clone --depth 1 https://github.com/shinh/maloader.git maloader
     
