@@ -20,9 +20,17 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev git uuid-dev
+        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386
         git clone --depth 1 https://github.com/linux-apfs/linux-apfs-rw.git linux-7.0/fs/apfs
         git clone --depth 1 https://github.com/shinh/maloader.git maloader
+    
+    - name: Create sys/sysctl.h stub
+      run: |
+        echo '#ifndef _SYS_SYSCTL_H' > maloader/include/sys/sysctl.h
+        echo '#define _SYS_SYSCTL_H' >> maloader/include/sys/sysctl.h
+        echo '#define CTL_KERN 2' >> maloader/include/sys/sysctl.h
+        echo '#define KERN_JOBSIZE 48' >> maloader/include/sys/sysctl.h
+        cat maloader/include/sys/sysctl.h
     
     - name: Build Maloader
       run: |
