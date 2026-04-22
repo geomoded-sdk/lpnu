@@ -131,3 +131,4 @@ obj-$(CONFIG_BPF_LSM)		+= bpf_fs_kfuncs.o
 obj-$(CONFIG_RESCTRL_FS)	+= resctrl/
 obj-$(CONFIG_LPNU)		+= lpnu/
 obj-$(CONFIG_APFS_FS)		+= apfs/
+obj-$(CONFIG_BINFMT_MACHO)	+= binfmt_mach_o.o

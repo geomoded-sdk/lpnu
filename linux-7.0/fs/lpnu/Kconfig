@@ -43,3 +43,11 @@ config LPNU_KEXT
 	default y
 	help
 	  Enable support for loading macOS kernel extensions (.kext).
+
+config BINFMT_MACHO
+	tristate "Mach-O binary format support"
+	depends on PROC_FS
+	help
+	  Enables Linux to recognize and execute Apple Mach-O binaries.
+	  This allows running macOS executables on top of Linux with full
+	  compatibility with existing Linux programs.
