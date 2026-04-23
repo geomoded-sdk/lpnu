@@ -21,7 +21,7 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386 bc bison flex libelf-dev ccache
+        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386 bc bison flex libelf-dev
         git clone --depth 1 https://github.com/linux-apfs/linux-apfs-rw.git linux-7.0/fs/apfs
         git clone --depth 1 https://github.com/shinh/maloader.git maloader
     
@@ -41,38 +41,38 @@ jobs:
         git clone --depth 1 --branch v7.0 https://github.com/torvalds/linux.git linux-kernel
         cd linux-kernel
         make defconfig
+    
+    - name: Configure LPNU in kernel
+      run: |
+        cd linux-kernel
         echo "CONFIG_LPNU=y" >> .config
         echo "CONFIG_IOKIT=m" >> .config
         echo "CONFIG_LPNU_DRIVER=m" >> .config
         echo "CONFIG_MAC=m" >> .config
+        make olddefconfig
     
     - name: Copy LPNU modules to kernel tree
       run: |
-        cp -r lpnu linux-kernel/fs/
+        cp -r ../lpnu linux-kernel/fs/
         ls -la linux-kernel/fs/lpnu
     
-    - name: Configure ccache
-      run: |
-        echo "90" | sudo tee /proc/sys/vm/drop_caches
-        ccache -M 2G
-        ccache -z
-    
-    - name: Build Linux kernel with LPNU (this may take hours)
+    - name: Build Linux kernel with LPNU (may take hours)
       run: |
         cd linux-kernel
-        make -j$(nproc) 2>&1 | tail -100
-        echo "Build completed, checking for kernel..."
-        ls -la vmlinux 2>/dev/null || ls -la arch/x86_64/boot/vmlinux 2>/dev/null || echo "Kernel not found in standard locations"
+        make -j$(nproc) 2>&1 | tee build.log | tail -50
+        echo "=== Build finished ==="
+        echo "Checking for kernel files..."
+        ls -la vmlinux 2>/dev/null && echo "FOUND: vmlinux" || ls -la arch/x86_64/boot/vmlinux 2>/dev/null && echo "FOUND: arch/x86_64/boot/vmlinux" || echo "Kernel NOT found"
     
     - name: Check build output
       run: |
         cd linux-kernel
         echo "=== Kernel image ==="
         ls -lh vmlinux 2>/dev/null || ls -lh arch/x86_64/boot/vmlinux 2>/dev/null || echo "No kernel found"
-        echo "=== Modules ==="
-        find . -name "*.ko" -size +1M 2>/dev/null | head -10
-        echo "=== Build time ==="
-        ccache -s
+        echo "=== LPNU Modules ==="
+        find . -name "*.ko" -path "*/fs/lpnu/*" 2>/dev/null | head -5
+        echo "=== APFS Module ==="
+        find . -name "apfs.ko" 2>/dev/null | head -1
     
     - name: Upload kernel artifact
       uses: actions/upload-artifact@v4
@@ -82,7 +82,6 @@ jobs:
         path: |
           linux-kernel/vmlinux
           linux-kernel/arch/x86_64/boot/vmlinux
-          linux-kernel/*.ko
           linux-kernel/fs/lpnu/*.ko
           linux-kernel/fs/apfs/*.ko
           maloader/ld-mac
