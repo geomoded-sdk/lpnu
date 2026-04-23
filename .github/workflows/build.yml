@@ -10,6 +10,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+        - runs-on: ubuntu-22.04
     
     steps:
     - uses: actions/checkout@v4
@@ -21,50 +25,39 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386
-        sudo apt-get install -y linux-headers-generic || true
-        KERNEL_VERSION=$(ls /lib/modules/ 2>/dev/null | head -1 || uname -r)
-        echo "Kernel: $KERNEL_VERSION"
-    
-    - name: Clone APFS
-      run: |
-        git clone --depth 1 https://github.com/linux-apfs/linux-apfs-rw.git linux-7.0/fs/apfs 2>/dev/null || true
-        mkdir -p linux-7.0/fs/apfs 2>/dev/null || true
-        ls linux-7.0/fs/
+        uname -r
+        ls /lib/modules/
+        ls /usr/src/ 2>/dev/null | head -5
     
     - name: Build Maloader
       run: |
-        git clone --depth 1 https://github.com/shinh/maloader.git maloader 2>/dev/null || true
-        cd maloader 2>/dev/null
+        git clone --depth 1 https://github.com/shinh/maloader.git maloader
+        cd maloader
         mkdir -p include/sys
-        printf '%s\n' '#ifndef _SYS_SYSCTL_H' '#define _SYS_SYSCTL_H' '#define CTL_KERN 1' '#define KERN_JOBSIZE 48' '#endif' > include/sys/sysctl.h
-        make release 2>/dev/null || true
-        ls -la ld-mac 2>/dev/null || echo "ld-mac built"
-    
-    - name: Build modules
-      run: |
-        cd linux-7.0/fs/lpnu
-        KDIR=$(ls -d /usr/src/linux-headers-* 2>/dev/null | head -1)
-        if [ -z "$KDIR" ]; then KDIR=/lib/modules/$(ls /lib/modules/ | head -1)/build; fi
-        echo "Using KDIR: $KDIR"
-        make KERNEL_DIR=$KDIR 2>&1 | tail -20
-        ls -lh *.ko 2>/dev/null || echo "Module built"
+        echo '#ifndef _SYS_SYSCTL_H' > include/sys/sysctl.h
+        echo '#define _SYS_SYSCTL_H' >> include/sys/sysctl.h
+        echo '#define CTL_KERN 1' >> include/sys/sysctl.h
+        echo '#define KERN_JOBSIZE 48' >> include/sys/sysctl.h
+        echo '#endif' >> include/sys/sysctl.h
+        cat include/sys/sysctl.h
+        make release
+        ls -la ld-mac
     
     - name: Package
       run: |
         mkdir -p lpnu-kernel
-        KERNEL_VERSION=$(ls /lib/modules/ 2>/dev/null | head -1 || uname -r)
-        cp /boot/vmlinuz-* lpnu-kernel/vmlinuz 2>/dev/null || true
-        cp /boot/initrd.img-* lpnu-kernel/initrd.img 2>/dev/null || true
-        cp linux-7.0/fs/lpnu/lpnu.ko lpnu-kernel/ 2>/dev/null || true
-        cp linux-7.0/fs/apfs/apfs.ko lpnu-kernel/ 2>/dev/null || true
-        cp maloader/ld-mac lpnu-kernel/ 2>/dev/null || true
-        cp -r maloader/libmac lpnu-kernel/ 2>/dev/null || true
-        ls -lh lpnu-kernel/ 2>/dev/null || echo "Package created"
+        cp maloader/ld-mac lpnu-kernel/
+        cp -r maloader/libmac lpnu-kernel/
+        cp lpnu/iokit/lpnu_iokit.h lpnu-kernel/
+        cp lpnu/libkern/lpnu_libkern.h lpnu-kernel/
+        cp lpnu/metal/lpnu_metal.h lpnu-kernel/
+        cp lpnu/mach/lpnu_mach_ipc.h lpnu-kernel/
+        ls -lh lpnu-kernel/
     
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: lpnu-kernel-package
+        name: lpnu-all
         path: lpnu-kernel/*
     
     - name: Get kernel version
