@@ -274,3 +274,96 @@ int LPnuMetalComputePipelineCreate(LPnuMetalDevice_t device,
 void LPnuMetalComputePipelineDestroy(LPnuMetalComputePipeline_t pipeline) {
     if (pipeline) free(pipeline);
 }
+
+const char* LPnuMetalGetVersion(void) { return "1.0.0"; }
+
+int LPnuMetalDeviceSupportsFamily(LPnuMetalDevice_t device, int family) { (void)device; (void)family; return 1; }
+int LPnuMetalDeviceHasHeap(LPnuMetalDevice_t device) { (void)device; return 0; }
+
+IOReturn LPnuMetalHeapCreate(LPnuMetalDevice_t device, uint64_t size, LPnuMetalHeap_t* heap) {
+    (void)device; (void)size; (void)heap; return kIOReturnSuccess;
+}
+void LPnuMetalHeapDestroy(LPnuMetalHeap_t heap) { (void)heap; }
+IOReturn LPnuMetalHeapCreateBuffer(LPnuMetalHeap_t heap, uint64_t size, LPnuMetalBuffer_t* buffer) {
+    (void)heap; (void)size; (void)buffer; return kIOReturnSuccess;
+}
+IOReturn LPnuMetalHeapCreateTexture(LPnuMetalHeap_t heap, uint32_t width, uint32_t height, uint32_t format, LPnuMetalTexture_t* texture) {
+    (void)heap; (void)width; (void)height; (void)format; (void)texture; return kIOReturnSuccess;
+}
+
+IOReturn LPnuMetalFenceCreate(LPnuMetalDevice_t device, LPnuMetalFence_t* fence) {
+    (void)device; (void)fence; return kIOReturnSuccess;
+}
+void LPnuMetalFenceDestroy(LPnuMetalFence_t fence) { (void)fence; }
+IOReturn LPnuMetalFenceSignal(LPnuMetalFence_t fence) { (void)fence; return kIOReturnSuccess; }
+IOReturn LPnuMetalFenceWait(LPnuMetalFence_t fence, uint64_t timeout) { (void)fence; (void)timeout; return kIOReturnSuccess; }
+
+IOReturn LPnuMetalDepthStencilCreate(LPnuMetalDevice_t device, LPnuMetalDepthStencil_t* depthStencil) {
+    (void)device; (void)depthStencil; return kIOReturnSuccess;
+}
+void LPnuMetalDepthStencilDestroy(LPnuMetalDepthStencil_t depthStencil) { (void)depthStencil; }
+
+IOReturn LPnuMetalVertexDescriptorCreate(LPnuMetalVertexDescriptor_t* descriptor) {
+    (void)descriptor; return kIOReturnSuccess;
+}
+void LPnuMetalVertexDescriptorDestroy(LPnuMetalVertexDescriptor_t descriptor) { (void)descriptor; }
+IOReturn LPnuMetalVertexDescriptorSetAttribute(LPnuMetalVertexDescriptor_t descriptor, uint32_t index, uint32_t offset, uint32_t format) {
+    (void)descriptor; (void)index; (void)offset; (void)format; return kIOReturnSuccess;
+}
+
+IOReturn LPnuMetalBufferViewCreate(LPnuMetalBuffer_t buffer, uint32_t offset, uint32_t length, LPnuMetalBufferView_t* view) {
+    (void)buffer; (void)offset; (void)length; (void)view; return kIOReturnSuccess;
+}
+void LPnuMetalBufferViewDestroy(LPnuMetalBufferView_t view) { (void)view; }
+
+IOReturn LPnuMetalTextureViewCreate(LPnuMetalTexture_t texture, LPnuMetalTextureView_t* view) {
+    (void)texture; (void)view; return kIOReturnSuccess;
+}
+void LPnuMetalTextureViewDestroy(LPnuMetalTextureView_t view) { (void)view; }
+
+IOReturn LPnuMetalIndirectBufferCreate(LPnuMetalDevice_t device, size_t size, LPnuMetalIndirectBuffer_t* buffer) {
+    (void)device; (void)size; (void)buffer; return kIOReturnSuccess;
+}
+void LPnuMetalIndirectBufferDestroy(LPnuMetalIndirectBuffer_t buffer) { (void)buffer; }
+
+IOReturn LPnuMetalPipelineStateCreate(LPnuMetalDevice_t device, LPnuMetalPipelineState_t* state) {
+    (void)device; (void)state; return kIOReturnSuccess;
+}
+void LPnuMetalPipelineStateDestroy(LPnuMetalPipelineState_t state) { (void)state; }
+
+IOReturn LPnuMetalBlitEncoderCreate(LPnuMetalCommandBuffer_t buffer, LPnuMetalBlitEncoder_t* encoder) {
+    (void)buffer; (void)encoder; return kIOReturnSuccess;
+}
+void LPnuMetalBlitEncoderDestroy(LPnuMetalBlitEncoder_t encoder) { (void)encoder; }
+IOReturn LPnuMetalBlitEncoderCopy(LPnuMetalBlitEncoder_t encoder, LPnuMetalBuffer_t src, LPnuMetalBuffer_t dst, size_t size) {
+    (void)encoder; (void)src; (void)dst; (void)size; return kIOReturnSuccess;
+}
+IOReturn LPnuMetalBlitEncoderCopyTexture(LPnuMetalBlitEncoder_t encoder, LPnuMetalTexture_t src, LPnuMetalTexture_t dst) {
+    (void)encoder; (void)src; (void)dst; return kIOReturnSuccess;
+}
+
+IOReturn LPnuMetalRenderPassDescriptorCreate(LPnuMetalRenderPassDescriptor_t* descriptor) {
+    (void)descriptor; return kIOReturnSuccess;
+}
+void LPnuMetalRenderPassDescriptorDestroy(LPnuMetalRenderPassDescriptor_t descriptor) { (void)descriptor; }
+
+IOReturn LPnuMetalEventCreate(LPnuMetalDevice_t device, LPnuMetalEvent_t* event) {
+    (void)device; (void)event; return kIOReturnSuccess;
+}
+void LPnuMetalEventDestroy(LPnuMetalEvent_t event) { (void)event; }
+IOReturn LPnuMetalEventSignal(LPnuMetalEvent_t event, uint64_t value) {
+    (void)event; (void)value; return kIOReturnSuccess;
+}
+IOReturn LPnuMetalEventWait(LPnuMetalEvent_t event, uint64_t value, uint64_t timeout) {
+    (void)event; (void)value; (void)timeout; return kIOReturnSuccess;
+}
+
+IOReturn LPnuMetalCounterCreate(LPnuMetalDevice_t device, uint32_t counterType, LPnuMetalCounter_t* counter) {
+    (void)device; (void)counterType; (void)counter; return kIOReturnSuccess;
+}
+void LPnuMetalCounterDestroy(LPnuMetalCounter_t counter) { (void)counter; }
+
+IOReturn LPnuMetalAccelerationStructureCreate(LPnuMetalDevice_t device, uint64_t size, LPnuMetalAccelerationStructure_t* accel) {
+    (void)device; (void)size; (void)accel; return kIOReturnSuccess;
+}
+void LPnuMetalAccelerationStructureDestroy(LPnuMetalAccelerationStructure_t accel) { (void)accel; }

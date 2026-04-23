@@ -118,6 +118,69 @@ void LPnuMetalFenceDestroy(LPnuMetalFence_t fence);
 IOReturn LPnuMetalFenceSignal(LPnuMetalFence_t fence);
 IOReturn LPnuMetalFenceWait(LPnuMetalFence_t fence, uint64_t timeout);
 
+/* Depth stencil */
+typedef struct LPnuMetalDepthStencil* LPnuMetalDepthStencil_t;
+IOReturn LPnuMetalDepthStencilCreate(LPnuMetalDevice_t device, LPnuMetalDepthStencil_t* depthStencil);
+void LPnuMetalDepthStencilDestroy(LPnuMetalDepthStencil_t depthStencil);
+
+/* Vertex descriptor */
+typedef struct LPnuMetalVertexDescriptor* LPnuMetalVertexDescriptor_t;
+IOReturn LPnuMetalVertexDescriptorCreate(LPnuMetalVertexDescriptor_t* descriptor);
+void LPnuMetalVertexDescriptorDestroy(LPnuMetalVertexDescriptor_t descriptor);
+IOReturn LPnuMetalVertexDescriptorSetAttribute(LPnuMetalVertexDescriptor_t descriptor, uint32_t index, uint32_t offset, uint32_t format);
+
+/* Buffer view */
+typedef struct LPnuMetalBufferView* LPnuMetalBufferView_t;
+IOReturn LPnuMetalBufferViewCreate(LPnuMetalBuffer_t buffer, uint32_t offset, uint32_t length, LPnuMetalBufferView_t* view);
+void LPnuMetalBufferViewDestroy(LPnuMetalBufferView_t view);
+
+/* Texture view */
+typedef struct LPnuMetalTextureView* LPnuMetalTextureView_t;
+IOReturn LPnuMetalTextureViewCreate(LPnuMetalTexture_t texture, LPnuMetalTextureView_t* view);
+void LPnuMetalTextureViewDestroy(LPnuMetalTextureView_t view);
+
+/* Draw indirect */
+typedef struct LPnuMetalIndirectBuffer* LPnuMetalIndirectBuffer_t;
+IOReturn LPnuMetalIndirectBufferCreate(LPnuMetalDevice_t device, size_t size, LPnuMetalIndirectBuffer_t* buffer);
+void LPnuMetalIndirectBufferDestroy(LPnuMetalIndirectBuffer_t buffer);
+
+/* Pipeline state */
+typedef struct LPnuMetalPipelineState* LPnuMetalPipelineState_t;
+IOReturn LPnuMetalPipelineStateCreate(LPnuMetalDevice_t device, LPnuMetalPipelineState_t* state);
+void LPnuMetalPipelineStateDestroy(LPnuMetalPipelineState_t state);
+
+/* Blit command encoder */
+typedef struct LPnuMetalBlitEncoder* LPnuMetalBlitEncoder_t;
+IOReturn LPnuMetalBlitEncoderCreate(LPnuMetalCommandBuffer_t buffer, LPnuMetalBlitEncoder_t* encoder);
+void LPnuMetalBlitEncoderDestroy(LPnuMetalBlitEncoder_t encoder);
+IOReturn LPnuMetalBlitEncoderCopy(LPnuMetalBlitEncoder_t encoder, LPnuMetalBuffer_t src, LPnuMetalBuffer_t dst, size_t size);
+IOReturn LPnuMetalBlitEncoderCopyTexture(LPnuMetalBlitEncoder_t encoder, LPnuMetalTexture_t src, LPnuMetalTexture_t dst);
+
+/* Render pass */
+typedef struct LPnuMetalRenderPassDescriptor* LPnuMetalRenderPassDescriptor_t;
+IOReturn LPnuMetalRenderPassDescriptorCreate(LPnuMetalRenderPassDescriptor_t* descriptor);
+void LPnuMetalRenderPassDescriptorDestroy(LPnuMetalRenderPassDescriptor_t descriptor);
+
+/* Events */
+typedef struct LPnuMetalEvent* LPnuMetalEvent_t;
+IOReturn LPnuMetalEventCreate(LPnuMetalDevice_t device, LPnuMetalEvent_t* event);
+void LPnuMetalEventDestroy(LPnuMetalEvent_t event);
+IOReturn LPnuMetalEventSignal(LPnuMetalEvent_t event, uint64_t value);
+IOReturn LPnuMetalEventWait(LPnuMetalEvent_t event, uint64_t value, uint64_t timeout);
+
+/* Counter */
+typedef struct LPnuMetalCounter* LPnuMetalCounter_t;
+IOReturn LPnuMetalCounterCreate(LPnuMetalDevice_t device, uint32_t counterType, LPnuMetalCounter_t* counter);
+void LPnuMetalCounterDestroy(LPnuMetalCounter_t counter);
+
+/* Acceleration structure */
+typedef struct LPnuMetalAccelerationStructure* LPnuMetalAccelerationStructure_t;
+IOReturn LPnuMetalAccelerationStructureCreate(LPnuMetalDevice_t device, uint64_t size, LPnuMetalAccelerationStructure_t* accel);
+void LPnuMetalAccelerationStructureDestroy(LPnuMetalAccelerationStructure_t accel);
+
+/* Version */
+const char* LPnuMetalGetVersion(void);
+
 #ifdef __cplusplus
 }
 #endif

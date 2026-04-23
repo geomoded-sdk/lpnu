@@ -472,3 +472,242 @@ void* LPNUOSCompareAndSwapPointer(void* oldValue, void* newValue, void** addr) {
     }
     return orig;
 }
+
+/* OSArray implementation */
+int LPNUOSArrayCreate(LPNUOSArray** array, uint32_t capacity) {
+    if (!array) return -1;
+    LPNUOSArray* a = (LPNUOSArray*)calloc(1, sizeof(LPNUOSArray));
+    if (!a) return -2;
+    a->className = "OSArray";
+    a->refCount = 1;
+    a->capacity = capacity > 0 ? capacity : 16;
+    a->objects = (void**)calloc(a->capacity, sizeof(void*));
+    if (!a->objects) { free(a); return -2; }
+    *array = a;
+    return 0;
+}
+
+void LPNUOSArrayDestroy(LPNUOSArray* array) {
+    if (array) { if (array->objects) free(array->objects); free(array); }
+}
+
+int LPNUOSArrayAddObject(LPNUOSArray* array, void* object) {
+    if (!array || !object) return -1;
+    if (array->count >= array->capacity) {
+        uint32_t newCap = array->capacity * 2;
+        void** newObjs = (void**)realloc(array->objects, newCap * sizeof(void*));
+        if (!newObjs) return -2;
+        array->objects = newObjs;
+        array->capacity = newCap;
+    }
+    array->objects[array->count++] = object;
+    return 0;
+}
+
+int LPNUOSArrayRemoveObject(LPNUOSArray* array, void* object) {
+    if (!array || !object) return -1;
+    for (uint32_t i = 0; i < array->count; i++) {
+        if (array->objects[i] == object) {
+            for (uint32_t j = i; j < array->count - 1; j++) array->objects[j] = array->objects[j + 1];
+            array->count--;
+            return 0;
+        }
+    }
+    return -1;
+}
+
+void* LPNUOSArrayGetObject(LPNUOSArray* array, uint32_t index) {
+    if (!array || index >= array->count) return NULL;
+    return array->objects[index];
+}
+
+uint32_t LPNUOSArrayGetCount(LPNUOSArray* array) {
+    return array ? array->count : 0;
+}
+
+int LPNUOSArraySetObject(LPNUOSArray* array, uint32_t index, void* object) {
+    if (!array || index >= array->capacity) return -1;
+    array->objects[index] = object;
+    if (index >= array->count) array->count = index + 1;
+    return 0;
+}
+
+/* OSIterator implementation */
+int LPNUOSIteratorCreate(LPNUOSIterator** iter, void** objects, uint32_t count) {
+    if (!iter) return -1;
+    LPNUOSIterator* i = (LPNUOSIterator*)calloc(1, sizeof(LPNUOSIterator));
+    if (!i) return -2;
+    i->className = "OSIterator";
+    i->objects = objects;
+    i->count = count;
+    i->index = 0;
+    *iter = i;
+    return 0;
+}
+
+void LPNUOSIteratorDestroy(LPNUOSIterator* iter) {
+    if (iter) free(iter);
+}
+
+void* LPNUOSIteratorNext(LPNUOSIterator* iter) {
+    if (!iter || iter->index >= iter->count) return NULL;
+    return iter->objects[iter->index++];
+}
+
+void* LPNUOSIteratorReset(LPNUOSIterator* iter) {
+    if (!iter) return NULL;
+    iter->index = 0;
+    return NULL;
+}
+
+bool LPNUOSIteratorIsValid(LPNUOSIterator* iter) {
+    return iter && iter->index < iter->count;
+}
+
+/* OSOrderedSet implementation */
+int LPNUOSOrderedSetCreate(LPNUOSOrderedSet** set, int (*compare)(void*, void*)) {
+    if (!set) return -1;
+    LPNUOSOrderedSet* s = (LPNUOSOrderedSet*)calloc(1, sizeof(LPNUOSOrderedSet));
+    if (!s) return -2;
+    s->className = "OSOrderedSet";
+    s->refCount = 1;
+    s->capacity = 16;
+    s->compare = compare;
+    s->objects = (void**)calloc(s->capacity, sizeof(void*));
+    if (!s->objects) { free(s); return -2; }
+    *set = s;
+    return 0;
+}
+
+void LPNUOSOrderedSetDestroy(LPNUOSOrderedSet* set) {
+    if (set) { if (set->objects) free(set->objects); free(set); }
+}
+
+int LPNUOSOrderedSetAddObject(LPNUOSOrderedSet* set, void* object) {
+    if (!set || !object) return -1;
+    if (set->count >= set->capacity) {
+        uint32_t newCap = set->capacity * 2;
+        void** newObjs = (void**)realloc(set->objects, newCap * sizeof(void*));
+        if (!newObjs) return -2;
+        set->objects = newObjs;
+        set->capacity = newCap;
+    }
+    set->objects[set->count++] = object;
+    return 0;
+}
+
+void* LPNUOSOrderedSetGetObject(LPNUOSOrderedSet* set, uint32_t index) {
+    if (!set || index >= set->count) return NULL;
+    return set->objects[index];
+}
+
+bool LPNUOSOrderedSetContainsObject(LPNUOSOrderedSet* set, void* object) {
+    if (!set || !object) return false;
+    for (uint32_t i = 0; i < set->count; i++) {
+        if (set->objects[i] == object) return true;
+    }
+    return false;
+}
+
+/* libkern utilities */
+void* LPNUOSMalloc(uint64_t size) {
+    return malloc(size);
+}
+
+void LPNUOSFree(void* ptr, uint64_t size) {
+    (void)size;
+    free(ptr);
+}
+
+void* LPNUOSRealloc(void* ptr, uint64_t oldSize, uint64_t newSize) {
+    (void)oldSize;
+    return realloc(ptr, newSize);
+}
+
+void* LPNUOSMemcpy(void* dest, const void* src, uint64_t n) {
+    return memcpy(dest, src, n);
+}
+
+void* LPNUOSMemset(void* s, int c, uint64_t n) {
+    return memset(s, c, n);
+}
+
+int LPNUOSMemcmp(const void* s1, const void* s2, uint64_t n) {
+    return memcmp(s1, s2, n);
+}
+
+/* OSTimer implementation */
+int LPNUOSTimerCreate(LPNUOSTimer** timer, uint64_t interval, LPNUOSTimerCallback callback, void* ref) {
+    if (!timer) return -1;
+    LPNUOSTimer* t = (LPNUOSTimer*)calloc(1, sizeof(LPNUOSTimer));
+    if (!t) return -2;
+    t->className = "OSTimer";
+    t->refCount = 1;
+    t->interval = interval;
+    t->armed = false;
+    t->callback = callback;
+    t->ref = ref;
+    *timer = t;
+    return 0;
+}
+
+void LPNUOSTimerDestroy(LPNUOSTimer* timer) {
+    if (timer) free(timer);
+}
+
+int LPNUOSTimerArm(LPNUOSTimer* timer) {
+    if (!timer) return -1;
+    timer->armed = true;
+    return 0;
+}
+
+int LPNUOSTimerDisarm(LPNUOSTimer* timer) {
+    if (!timer) return -1;
+    timer->armed = false;
+    return 0;
+}
+
+int LPNUOSTimerFire(LPNUOSTimer* timer) {
+    if (!timer || !timer->armed) return -1;
+    if (timer->callback) timer->callback(timer->ref);
+    return 0;
+}
+
+/* OSLock implementation */
+int LPNUOSLockCreate(LPNUOSLock** lock) {
+    if (!lock) return -1;
+    LPNUOSLock* l = (LPNUOSLock*)calloc(1, sizeof(LPNUOSLock));
+    if (!l) return -2;
+    l->className = "OSLock";
+    l->refCount = 1;
+    *lock = l;
+    return 0;
+}
+
+void LPNUOSLockDestroy(LPNUOSLock* lock) {
+    if (lock) free(lock);
+}
+
+int LPNUOSLockAcquire(LPNUOSLock* lock) {
+    (void)lock;
+    return 0;
+}
+
+int LPNUOSLockRelease(LPNUOSLock* lock) {
+    (void)lock;
+    return 0;
+}
+
+bool LPNUOSLockTryAcquire(LPNUOSLock* lock) {
+    (void)lock;
+    return true;
+}
+
+/* Debug */
+void LPNUOSDebugLog(const char* format, ...) {
+    (void)format;
+}
+
+void LPNUOSPanic(const char* reason) {
+    (void)reason;
+}

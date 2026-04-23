@@ -154,6 +154,98 @@ int LPNUOSDecrementAtomic(int* addr);
 int LPNUOSCompareAndSwap(int oldValue, int newValue, int* addr);
 void* LPNUOSCompareAndSwapPointer(void* oldValue, void* newValue, void** addr);
 
+/* OSArray */
+typedef struct LPNUOSArray {
+    const char* className;
+    uint32_t refCount;
+    void** objects;
+    uint32_t count;
+    uint32_t capacity;
+} LPNUOSArray;
+
+/* OSIterator */
+typedef struct LPNUOSIterator {
+    const char* className;
+    void** objects;
+    uint32_t index;
+    uint32_t count;
+} LPNUOSIterator;
+
+/* OSOrderedSet */
+typedef struct LPNUOSOrderedSet {
+    const char* className;
+    uint32_t refCount;
+    void** objects;
+    uint32_t count;
+    uint32_t capacity;
+    int (*compare)(void*, void*);
+} LPNUOSOrderedSet;
+
+/* libkern utilities */
+void* LPNUOSMalloc(uint64_t size);
+void LPNUOSFree(void* ptr, uint64_t size);
+void* LPNUOSRealloc(void* ptr, uint64_t oldSize, uint64_t newSize);
+void* LPNUOSMemcpy(void* dest, const void* src, uint64_t n);
+void* LPNUOSMemset(void* s, int c, uint64_t n);
+int LPNUOSMemcmp(const void* s1, const void* s2, uint64_t n);
+
+/* OSArray functions */
+int LPNUOSArrayCreate(LPNUOSArray** array, uint32_t capacity);
+void LPNUOSArrayDestroy(LPNUOSArray* array);
+int LPNUOSArrayAddObject(LPNUOSArray* array, void* object);
+int LPNUOSArrayRemoveObject(LPNUOSArray* array, void* object);
+void* LPNUOSArrayGetObject(LPNUOSArray* array, uint32_t index);
+uint32_t LPNUOSArrayGetCount(LPNUOSArray* array);
+int LPNUOSArraySetObject(LPNUOSArray* array, uint32_t index, void* object);
+
+/* OSIterator functions */
+int LPNUOSIteratorCreate(LPNUOSIterator** iter, void** objects, uint32_t count);
+void LPNUOSIteratorDestroy(LPNUOSIterator* iter);
+void* LPNUOSIteratorNext(LPNUOSIterator* iter);
+void* LPNUOSIteratorReset(LPNUOSIterator* iter);
+bool LPNUOSIteratorIsValid(LPNUOSIterator* iter);
+
+/* OSOrderedSet functions */
+int LPNUOSOrderedSetCreate(LPNUOSOrderedSet** set, int (*compare)(void*, void*));
+void LPNUOSOrderedSetDestroy(LPNUOSOrderedSet* set);
+int LPNUOSOrderedSetAddObject(LPNUOSOrderedSet* set, void* object);
+void* LPNUOSOrderedSetGetObject(LPNUOSOrderedSet* set, uint32_t index);
+bool LPNUOSOrderedSetContainsObject(LPNUOSOrderedSet* set, void* object);
+
+/* OSTimer */
+typedef void (*LPNUOSTimerCallback)(void* ref);
+typedef struct LPNUOSTimer {
+    const char* className;
+    uint32_t refCount;
+    uint64_t interval;
+    bool armed;
+    LPNUOSTimerCallback callback;
+    void* ref;
+} LPNUOSTimer;
+
+int LPNUOSTimerCreate(LPNUOSTimer** timer, uint64_t interval, LPNUOSTimerCallback callback, void* ref);
+void LPNUOSTimerDestroy(LPNUOSTimer* timer);
+int LPNUOSTimerArm(LPNUOSTimer* timer);
+int LPNUOSTimerDisarm(LPNUOSTimer* timer);
+int LPNUOSTimerFire(LPNUOSTimer* timer);
+
+/* OSLock */
+typedef struct LPNUOSLock {
+    const char* className;
+    uint32_t refCount;
+    void* lock;
+} LPNUOSLock;
+
+int LPNUOSLockCreate(LPNUOSLock** lock);
+void LPNUOSLockDestroy(LPNUOSLock* lock);
+int LPNUOSLockAcquire(LPNUOSLock* lock);
+int LPNUOSLockRelease(LPNUOSLock* lock);
+bool LPNUOSLockTryAcquire(LPNUOSLock* lock);
+
+/* Debug */
+void LPNUOSDebugLog(const char* format, ...);
+void LPNUOSPanic(const char* reason);
+
 /* Version */
 const char* LPNULibkernGetVersion(void);
 
