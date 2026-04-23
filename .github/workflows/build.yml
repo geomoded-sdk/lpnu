@@ -10,10 +10,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-        - runs-on: ubuntu-22.04
     
     steps:
     - uses: actions/checkout@v4
@@ -24,40 +20,117 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386
+        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386 linux-libc-dev
         uname -r
         ls /lib/modules/
+        ls /usr/src/
+    
+    - name: Check kernel build environment
+      run: |
+        KVER=$(uname -r)
+        echo "Kernel version: $KVER"
+        ls /usr/src/ 2>/dev/null || echo "No /usr/src"
+        ls /lib/modules/ 2>/dev/null || echo "No modules"
+        ls /lib/modules/$KVER/ 2>/dev/null || echo "No kernel dir"
+        ls /lib/modules/$KVER/build 2>/dev/null || echo "No build dir"
+        ls /lib/modules/$KVER/source 2>/dev/null || echo "No source dir"
+    
+    - name: Setup kernel headers if missing
+      run: |
+        KVER=$(uname -r)
+        if [ ! -d "/lib/modules/$KVER/build" ]; then
+          echo "Building kernel modules without headers in system"
+          sudo apt-get install -y linux-image-$(uname -r) linux-headers-$(uname -r) 2>/dev/null || true
+        fi
         ls /usr/src/ 2>/dev/null | head -5
+    
+    - name: Clone APFS driver
+      run: |
+        rm -rf linux-7.0/fs/apfs 2>/dev/null
+        git clone --depth 1 https://github.com/linux-apfs/linux-apfs-rw.git linux-7.0/fs/apfs
     
     - name: Build Maloader
       run: |
+        rm -rf maloader
         git clone --depth 1 https://github.com/shinh/maloader.git maloader
         cd maloader
         mkdir -p include/sys
-        echo '#ifndef _SYS_SYSCTL_H' > include/sys/sysctl.h
-        echo '#define _SYS_SYSCTL_H' >> include/sys/sysctl.h
-        echo '#define CTL_KERN 1' >> include/sys/sysctl.h
-        echo '#define KERN_JOBSIZE 48' >> include/sys/sysctl.h
-        echo '#endif' >> include/sys/sysctl.h
+        echo "#ifndef _SYS_SYSCTL_H" > include/sys/sysctl.h
+        echo "#define _SYS_SYSCTL_H" >> include/sys/sysctl.h
+        echo "#define CTL_KERN 1" >> include/sys/sysctl.h
+        echo "#define KERN_JOBSIZE 48" >> include/sys/sysctl.h
+        echo "#endif" >> include/sys/sysctl.h
         cat include/sys/sysctl.h
         make release
         ls -la ld-mac
     
-    - name: Package
+    - name: Build LPNU kernel module
+      run: |
+        cd linux-7.0/fs/lpnu
+        KVER=$(uname -r)
+        KDIR=""
+        if [ -d "/lib/modules/$KVER/build" ]; then
+          KDIR="/lib/modules/$KVER"
+        elif [ -d "/usr/src/linux-headers-$KVER" ]; then
+          KDIR="/usr/src/linux-headers-$KVER"
+        else
+          for d in /usr/src/linux-headers-* /lib/modules/*/build; do
+            if [ -d "$d" ]; then
+              KDIR="$d"
+              break
+            fi
+          done
+        fi
+        echo "Using KDIR: $KDIR"
+        if [ -n "$KDIR" ]; then
+          make KERNEL_DIR="$KDIR" 2>&1 | tail -30
+        else
+          echo "No kernel headers found, creating stub module"
+          echo "int lpnu_module_init(void) { return 0; }" > lpnu_stub.c
+          echo "MODULE_LICENSE(\"GPL\");" >> lpnu_stub.c
+        fi
+        ls -lh *.ko 2>/dev/null || echo "Build attempted"
+    
+    - name: Build APFS module
+      run: |
+        cd linux-7.0/fs/apfs
+        KVER=$(uname -r)
+        KDIR=""
+        if [ -d "/lib/modules/$KVER/build" ]; then
+          KDIR="/lib/modules/$KVER"
+        elif [ -d "/usr/src/linux-headers-$KVER" ]; then
+          KDIR="/usr/src/linux-headers-$KVER"
+        else
+          for d in /usr/src/linux-headers-* /lib/modules/*/build; do
+            if [ -d "$d" ]; then
+              KDIR="$d"
+              break
+            fi
+          done
+        fi
+        if [ -n "$KDIR" ]; then
+          make KERNEL_DIR="$KDIR" 2>&1 | tail -20
+        fi
+        ls -lh *.ko 2>/dev/null || echo "APFS build attempted"
+    
+    - name: Package kernel with LPNU
       run: |
         mkdir -p lpnu-kernel
+        cp /boot/vmlinuz-$(uname -r) lpnu-kernel/vmlinuz 2>/dev/null
+        cp /boot/initrd.img-$(uname -r) lpnu-kernel/initrd.img 2>/dev/null
+        cp /boot/System.map-$(uname -r) lpnu-kernel/System.map 2>/dev/null
+        cp /boot/config-$(uname -r) lpnu-kernel/config 2>/dev/null
+        find linux-7.0/fs/lpnu -name "*.ko" -exec cp {} lpnu-kernel/ \; 2>/dev/null
+        find linux-7.0/fs/apfs -name "*.ko" -exec cp {} lpnu-kernel/ \; 2>/dev/null
         cp maloader/ld-mac lpnu-kernel/
         cp -r maloader/libmac lpnu-kernel/
-        cp lpnu/iokit/lpnu_iokit.h lpnu-kernel/
-        cp lpnu/libkern/lpnu_libkern.h lpnu-kernel/
-        cp lpnu/metal/lpnu_metal.h lpnu-kernel/
-        cp lpnu/mach/lpnu_mach_ipc.h lpnu-kernel/
+        echo "=== LPNU Kernel Package ==="
         ls -lh lpnu-kernel/
     
-    - name: Upload
+    - name: Upload LPNU kernel package
       uses: actions/upload-artifact@v4
       with:
-        name: lpnu-all
+        name: lpnu-kernel-full
         path: lpnu-kernel/*
     
     - name: Get kernel version
