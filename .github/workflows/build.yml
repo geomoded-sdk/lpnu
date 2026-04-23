@@ -17,45 +17,22 @@ jobs:
         submodules: false
         lfs: false
     
-    - name: Install build dependencies
+    - name: Install PRECOMPILED kernel and build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386 linux-headers-generic wget
+        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386
+        sudo apt-get install -y linux-image-generic linux-headers-generic
+        uname -r
+        ls /boot/
+        ls /lib/modules/
     
-    - name: Download precompiled kernel v7.0
+    - name: Download and extract precompiled kernel
       run: |
-        mkdir -p kernel-build
-        cd kernel-build
-        wget -q https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.0.tar.gz
-        tar xf linux-7.0.tar.gz
-        cd linux-7.0
-        echo "Downloaded kernel source"
-    
-    - name: Configure kernel
-      run: |
-        cd kernel-build/linux-7.0
-        make x86_64_defconfig
-        echo "CONFIG_MAC=m" >> .config
-        echo "CONFIG_LPNU=m" >> .config
-        echo "CONFIG_IOKIT=m" >> .config
-        make olddefconfig
-    
-    - name: Copy LPNU modules to kernel tree
-      run: |
-        cp -r ../lpnu kernel-build/linux-7.0/fs/
-        cp -r ../linux-7.0/fs/apfs kernel-build/linux-7.0/fs/ 2>/dev/null || true
-        rm -rf kernel-build/linux-7.0/fs/apfs
-        git clone --depth 1 https://github.com/linux-apfs/linux-apfs-rw.git kernel-build/linux-7.0/fs/apfs
-        ls -la kernel-build/linux-7.0/fs/
-    
-    - name: Build kernel with LPNU
-      run: |
-        cd kernel-build/linux-7.0
-        make -j$(nproc) 2>&1 | tail -50
-        echo "=== Build status ==="
-        ls -lh vmlinux 2>/dev/null && echo "KERNEL: vmlinux built!" || echo "Using defconfig kernel"
-        find . -name "*.ko" -path "*/fs/lpnu/*" 2>/dev/null | head -5
-        find . -name "apfs.ko" 2>/dev/null | head -1
+        mkdir -p kernel-output
+        cp /boot/vmlinuz-* kernel-output/vmlinuz 2>/dev/null || true
+        cp /boot/initrd.img-* kernel-output/initrd.img 2>/dev/null || true
+        cp /boot/config-* kernel-output/config 2>/dev/null || true
+        ls -lh kernel-output/
     
     - name: Build Maloader
       run: |
@@ -66,19 +43,52 @@ jobs:
         make release
         ls -la ld-mac
     
-    - name: Package kernel and modules
+    - name: Build LPNU module against PRECOMPILED kernel
       run: |
-        mkdir -p output
-        cd kernel-build/linux-7.0
-        cp vmlinux ../output/ 2>/dev/null || echo "No vmlinux"
-        find . -name "lpnu.ko" -exec cp {} ../output/ \; 2>/dev/null || true
-        find . -name "apfs.ko" -exec cp {} ../output/ \; 2>/dev/null || true
-        cp ../maloader/ld-mac ../output/
-        cp -r ../maloader/libmac ../output/
-        ls -lh ../output/
+        KERNEL_VERSION=$(ls /lib/modules/ | head -1)
+        echo "Building against kernel: $KERNEL_VERSION"
+        cd linux-7.0/fs/lpnu
+        make KERNEL_DIR=/lib/modules/$KERNEL_VERSION/
+        ls -lh *.ko
     
-    - name: Upload kernel package
+    - name: Build APFS module against PRECOMPILED kernel
+      run: |
+        KERNEL_VERSION=$(ls /lib/modules/ | head -1)
+        git clone --depth 1 https://github.com/linux-apfs/linux-apfs-rw.git ../linux-apfs-temp
+        cd ../linux-apfs-temp
+        make KERNEL_DIR=/lib/modules/$KERNEL_VERSION/
+        mv apfs.ko ../linux-7.0/fs/
+        ls -lh ../linux-7.0/fs/apfs.ko
+    
+    - name: Package PRECOMPILED kernel with LPNU modules
+      run: |
+        mkdir -p lpnu-kernel-package
+        KERNEL_VERSION=$(ls /lib/modules/ | head -1)
+        
+        cp /boot/vmlinuz-* lpnu-kernel-package/vmlinuz
+        cp /boot/initrd.img-* lpnu-kernel-package/initrd.img
+        cp /boot/System.map-* lpnu-kernel-package/System.map
+        cp /boot/config-* lpnu-kernel-package/config
+        
+        cp linux-7.0/fs/lpnu/lpnu.ko lpnu-kernel-package/
+        cp linux-7.0/fs/apfs/apfs.ko lpnu-kernel-package/
+        
+        cp maloader/ld-mac lpnu-kernel-package/
+        cp -r maloader/libmac lpnu-kernel-package/
+        
+        echo "=== LPNU Kernel Package ===" > lpnu-kernel-package/README.txt
+        echo "Kernel: PRECOMPILED from Ubuntu" >> lpnu-kernel-package/README.txt
+        echo "Modules: lpnu.ko + apfs.ko" >> lpnu-kernel-package/README.txt
+        echo "Loader: ld-mac (Mach-O to ELF)" >> lpnu-kernel-package/README.txt
+        echo "" >> lpnu-kernel-package/README.txt
+        echo "Contents:" >> lpnu-kernel-package/README.txt
+        ls -lh lpnu-kernel-package/*.ko >> lpnu-kernel-package/README.txt
+        cat lpnu-kernel-package/README.txt
+        echo ""
+        ls -lh lpnu-kernel-package/
+    
+    - name: Upload LPNU kernel package
       uses: actions/upload-artifact@v4
       with:
-        name: lpnu-kernel-complete
-        path: output/*
+        name: lpnu-kernel-package
+        path: lpnu-kernel-package/*
