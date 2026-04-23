@@ -20,7 +20,7 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386
+        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386 bc bison flex libelf-dev
         git clone --depth 1 https://github.com/linux-apfs/linux-apfs-rw.git linux-7.0/fs/apfs
         git clone --depth 1 https://github.com/shinh/maloader.git maloader
     
@@ -35,6 +35,30 @@ jobs:
         make release
         ls -la ld-mac
         
+    - name: Download Linux kernel source
+      run: |
+        if [ ! -d "linux-7.0" ]; then
+          git clone --depth 1 --branch v7.0 https://github.com/torvalds/linux.git linux-7.0
+        fi
+        cd linux-7.0
+        make defconfig
+    
+    - name: Copy LPNU modules to kernel
+      run: |
+        cp -r ../lpnu linux-7.0/fs/
+        cp -r ../linux-7.0/fs/lpnu linux-7.0/fs/ 2>/dev/null || true
+        rm -rf linux-7.0/fs/lpnu
+        cp -r ../lpnu linux-7.0/fs/lpnu
+    
+    - name: Configure kernel with LPNU
+      run: |
+        cd linux-7.0
+        echo "CONFIG_MAC=y" >> .config
+        echo "CONFIG_LPNU=y" >> .config
+        echo "CONFIG_IOKIT=y" >> .config
+        echo "CONFIG_LPNU_DRIVER=m" >> .config
+        make olddefconfig
+    
     - name: Build LPNU module
       run: |
         cd linux-7.0/fs/lpnu
