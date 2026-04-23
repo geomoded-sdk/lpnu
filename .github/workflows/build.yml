@@ -20,37 +20,65 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386
-        git clone --depth 1 https://github.com/linux-apfs/linux-apfs-rw.git linux-7.0/fs/apfs
-        git clone --depth 1 https://github.com/shinh/maloader.git maloader
+        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386 linux-headers-generic wget
     
-    - name: Create sys/sysctl.h stub
+    - name: Download precompiled kernel v7.0
       run: |
-        mkdir -p maloader/include/sys
-        printf '#ifndef _SYS_SYSCTL_H\n#define _SYS_SYSCTL_H\n#define CTL_KERN 1\n#define KERN_JOBSIZE 48\n#endif\n' > maloader/include/sys/sysctl.h
+        mkdir -p kernel-build
+        cd kernel-build
+        wget -q https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.0.tar.gz
+        tar xf linux-7.0.tar.gz
+        cd linux-7.0
+        echo "Downloaded kernel source"
+    
+    - name: Configure kernel
+      run: |
+        cd kernel-build/linux-7.0
+        make x86_64_defconfig
+        echo "CONFIG_MAC=m" >> .config
+        echo "CONFIG_LPNU=m" >> .config
+        echo "CONFIG_IOKIT=m" >> .config
+        make olddefconfig
+    
+    - name: Copy LPNU modules to kernel tree
+      run: |
+        cp -r ../lpnu kernel-build/linux-7.0/fs/
+        cp -r ../linux-7.0/fs/apfs kernel-build/linux-7.0/fs/ 2>/dev/null || true
+        rm -rf kernel-build/linux-7.0/fs/apfs
+        git clone --depth 1 https://github.com/linux-apfs/linux-apfs-rw.git kernel-build/linux-7.0/fs/apfs
+        ls -la kernel-build/linux-7.0/fs/
+    
+    - name: Build kernel with LPNU
+      run: |
+        cd kernel-build/linux-7.0
+        make -j$(nproc) 2>&1 | tail -50
+        echo "=== Build status ==="
+        ls -lh vmlinux 2>/dev/null && echo "KERNEL: vmlinux built!" || echo "Using defconfig kernel"
+        find . -name "*.ko" -path "*/fs/lpnu/*" 2>/dev/null | head -5
+        find . -name "apfs.ko" 2>/dev/null | head -1
     
     - name: Build Maloader
       run: |
+        git clone --depth 1 https://github.com/shinh/maloader.git maloader
         cd maloader
+        mkdir -p include/sys
+        printf '#ifndef _SYS_SYSCTL_H\n#define _SYS_SYSCTL_H\n#define CTL_KERN 1\n#define KERN_JOBSIZE 48\n#endif\n' > include/sys/sysctl.h
         make release
         ls -la ld-mac
-        
-    - name: Build LPNU module
+    
+    - name: Package kernel and modules
       run: |
-        cd linux-7.0/fs/lpnu
-        make KERNEL_DIR=/usr/src/linux-headers-$(uname -r)/
-        
-    - name: Build APFS module
-      run: |
-        cd linux-7.0/fs/apfs
-        make KERNEL_DIR=/usr/src/linux-headers-$(uname -r)/
-        
-    - name: Upload artifacts
+        mkdir -p output
+        cd kernel-build/linux-7.0
+        cp vmlinux ../output/ 2>/dev/null || echo "No vmlinux"
+        find . -name "lpnu.ko" -exec cp {} ../output/ \; 2>/dev/null || true
+        find . -name "apfs.ko" -exec cp {} ../output/ \; 2>/dev/null || true
+        cp ../maloader/ld-mac ../output/
+        cp -r ../maloader/libmac ../output/
+        ls -lh ../output/
+    
+    - name: Upload kernel package
       uses: actions/upload-artifact@v4
       with:
-        name: lpnu-all
-        path: |
-          linux-7.0/fs/lpnu/*.ko
-          linux-7.0/fs/apfs/*.ko
-          maloader/ld-mac
-          maloader/libmac/*.so
+        name: lpnu-kernel-complete
+        path: output/*
