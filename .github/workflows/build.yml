@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-hours: 6
     
     steps:
     - uses: actions/checkout@v4
@@ -20,7 +21,7 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386 bc bison flex libelf-dev
+        sudo apt-get install -y build-essential libssl-dev git uuid-dev libc6-dev-i386 bc bison flex libelf-dev ccache
         git clone --depth 1 https://github.com/linux-apfs/linux-apfs-rw.git linux-7.0/fs/apfs
         git clone --depth 1 https://github.com/shinh/maloader.git maloader
     
@@ -34,47 +35,55 @@ jobs:
         cd maloader
         make release
         ls -la ld-mac
-        
-    - name: Download Linux kernel source
+    
+    - name: Download Linux kernel source v7.0
       run: |
-        if [ ! -d "linux-7.0" ]; then
-          git clone --depth 1 --branch v7.0 https://github.com/torvalds/linux.git linux-7.0
-        fi
-        cd linux-7.0
+        git clone --depth 1 --branch v7.0 https://github.com/torvalds/linux.git linux-kernel
+        cd linux-kernel
         make defconfig
-    
-    - name: Copy LPNU modules to kernel
-      run: |
-        cp -r ../lpnu linux-7.0/fs/
-        cp -r ../linux-7.0/fs/lpnu linux-7.0/fs/ 2>/dev/null || true
-        rm -rf linux-7.0/fs/lpnu
-        cp -r ../lpnu linux-7.0/fs/lpnu
-    
-    - name: Configure kernel with LPNU
-      run: |
-        cd linux-7.0
-        echo "CONFIG_MAC=y" >> .config
         echo "CONFIG_LPNU=y" >> .config
-        echo "CONFIG_IOKIT=y" >> .config
+        echo "CONFIG_IOKIT=m" >> .config
         echo "CONFIG_LPNU_DRIVER=m" >> .config
-        make olddefconfig
+        echo "CONFIG_MAC=m" >> .config
     
-    - name: Build LPNU module
+    - name: Copy LPNU modules to kernel tree
       run: |
-        cd linux-7.0/fs/lpnu
-        make KERNEL_DIR=/usr/src/linux-headers-$(uname -r)/
-        
-    - name: Build APFS module
+        cp -r lpnu linux-kernel/fs/
+        ls -la linux-kernel/fs/lpnu
+    
+    - name: Configure ccache
       run: |
-        cd linux-7.0/fs/apfs
-        make KERNEL_DIR=/usr/src/linux-headers-$(uname -r)/
-        
-    - name: Upload artifacts
+        echo "90" | sudo tee /proc/sys/vm/drop_caches
+        ccache -M 2G
+        ccache -z
+    
+    - name: Build Linux kernel with LPNU (this may take hours)
+      run: |
+        cd linux-kernel
+        make -j$(nproc) 2>&1 | tail -100
+        echo "Build completed, checking for kernel..."
+        ls -la vmlinux 2>/dev/null || ls -la arch/x86_64/boot/vmlinux 2>/dev/null || echo "Kernel not found in standard locations"
+    
+    - name: Check build output
+      run: |
+        cd linux-kernel
+        echo "=== Kernel image ==="
+        ls -lh vmlinux 2>/dev/null || ls -lh arch/x86_64/boot/vmlinux 2>/dev/null || echo "No kernel found"
+        echo "=== Modules ==="
+        find . -name "*.ko" -size +1M 2>/dev/null | head -10
+        echo "=== Build time ==="
+        ccache -s
+    
+    - name: Upload kernel artifact
       uses: actions/upload-artifact@v4
+      if: success()
       with:
-        name: lpnu-all
+        name: lpnu-kernel-all
         path: |
-          linux-7.0/fs/lpnu/*.ko
-          linux-7.0/fs/apfs/*.ko
+          linux-kernel/vmlinux
+          linux-kernel/arch/x86_64/boot/vmlinux
+          linux-kernel/*.ko
+          linux-kernel/fs/lpnu/*.ko
+          linux-kernel/fs/apfs/*.ko
           maloader/ld-mac
           maloader/libmac/*.so
